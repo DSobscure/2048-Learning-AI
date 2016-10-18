@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MsgPack, Version=0.8.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
+      <HintPath>..\packages\MsgPack.Cli.0.8.0\lib\net45\MsgPack.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -52,10 +56,17 @@
     <Compile Include="TupleNetwork.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Game2048.AI.NeuralNetwork\Game2048.AI.NeuralNetwork.csproj">
+      <Project>{0507eab8-579f-4bb3-83cc-79c7a5257fd5}</Project>
+      <Name>Game2048.AI.NeuralNetwork</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Game2048.Game.Library\Game2048.Game.Library.csproj">
       <Project>{9466b218-6950-4f3b-8e1d-b314c1e49a70}</Project>
       <Name>Game2048.Game.Library</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

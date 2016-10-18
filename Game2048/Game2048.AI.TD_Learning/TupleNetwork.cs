@@ -1,6 +1,7 @@
 ﻿using Game2048.AI.TD_Learning.TupleFeatures;
 using Game2048.Game.Library;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Game2048.AI.TD_Learning
 {
@@ -12,12 +13,18 @@ namespace Game2048.AI.TD_Learning
         public TupleNetwork()
         {
             featureSet = new List<TupleFeature>();
-            featureSet.Add(new SixTupleFeature(2));
-            featureSet.Add(new SixTupleFeature(7));
-            featureSet.Add(new SixTupleFeature(3));
-            featureSet.Add(new SixTupleFeature(1));
-            featureSet.Add(new SixTupleFeature(6));
-            featureSet.Add(new SixTupleFeature(5));
+            featureSet.Add(new FourTupleFeature(3));
+            //featureSet.Add(new FourTupleFeature(7));
+            //featureSet.Add(new FiveTupleFeature(3));
+            //featureSet.Add(new FiveTupleFeature(2));
+            //featureSet.Add(new FiveTupleFeature(7));
+            //featureSet.Add(new FiveTupleFeature(5));
+            //featureSet.Add(new SixTupleFeature(2));
+            //featureSet.Add(new SixTupleFeature(7));
+            //featureSet.Add(new SixTupleFeature(3));
+            //featureSet.Add(new SixTupleFeature(1));
+            //featureSet.Add(new SixTupleFeature(6));
+            //featureSet.Add(new SixTupleFeature(5));
 
             rotatedBoards = new ulong[4];
         }
@@ -60,11 +67,44 @@ namespace Game2048.AI.TD_Learning
         }
         public void Save()
         {
-            
+            for (int i = 0; i < featureSet.Count; i++)
+            {
+                if(featureSet[i] is FourTupleFeature)
+                {
+                    File.WriteAllBytes("FourTupleFeature_Index" + i.ToString(), TupleFeature.Serialize(featureSet[i] as FourTupleFeature));
+                }
+                else if(featureSet[i] is FiveTupleFeature)
+                {
+                    File.WriteAllBytes("FiveTupleFeature_Index" + i.ToString(), TupleFeature.Serialize(featureSet[i] as FiveTupleFeature));
+                }
+                else if(featureSet[i] is SixTupleFeature)
+                {
+                    File.WriteAllBytes("SixTupleFeature_Index" + i.ToString(), TupleFeature.Serialize(featureSet[i] as SixTupleFeature));
+                }
+            }
         }
-        public void Load()
+        public void Load(out int loadedCount)
         {
-
+            loadedCount = featureSet.Count;
+            for (int i = 0; i < featureSet.Count; i++)
+            {
+                if (featureSet[i] is FourTupleFeature && File.Exists("FourTupleFeature_Index" + i.ToString()))
+                {
+                    featureSet[i] = TupleFeature.Deserialize<FourTupleFeature>(File.ReadAllBytes("FourTupleFeature_Index" + i.ToString()));
+                }
+                else if (featureSet[i] is FiveTupleFeature && File.Exists("FiveTupleFeature_Index" + i.ToString()))
+                {
+                    featureSet[i] = TupleFeature.Deserialize<FiveTupleFeature>(File.ReadAllBytes("FourTupleFeature_Index" + i.ToString()));
+                }
+                else if (featureSet[i] is SixTupleFeature && File.Exists("SixTupleFeature_Index" + i.ToString()))
+                {
+                    featureSet[i] = TupleFeature.Deserialize<SixTupleFeature>(File.ReadAllBytes("FourTupleFeature_Index" + i.ToString()));
+                }
+                else
+                {
+                    loadedCount--;
+                }
+            }
         }
     }
 }

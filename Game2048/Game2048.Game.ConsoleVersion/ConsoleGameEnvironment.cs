@@ -1,5 +1,5 @@
-﻿using System;
-using Game2048.Game.Library;
+﻿using Game2048.Game.Library;
+using System;
 
 namespace Game2048.Game.ConsoleVersion
 {
@@ -11,8 +11,9 @@ namespace Game2048.Game.ConsoleVersion
             {
                 for (int rowIndex = 0; rowIndex < 4; rowIndex++)
                 {
-                    if (((board.RawBlocks >> (16 * columnIndex + 4 * rowIndex)) & 0xf) > 0)
-                        Console.Write("\t{0}", 1 << (int)((board.RawBlocks >> (16 * columnIndex + 4 * rowIndex)) & 0xf));
+                    ulong rawBlockValue = ((board.RawBlocks >> (16 * columnIndex + 4 * rowIndex)) & 0xf);
+                    if (rawBlockValue > 0)
+                        Console.Write("\t{0}", 1 << (int)(rawBlockValue));
                     else
                         Console.Write("\t0");
                 }

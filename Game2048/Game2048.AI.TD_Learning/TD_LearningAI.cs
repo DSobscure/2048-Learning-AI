@@ -1,5 +1,7 @@
-﻿using Game2048.Game.Library;
+﻿using Game2048.AI.NeuralNetwork;
+using Game2048.Game.Library;
 using System.Collections.Generic;
+using System;
 
 namespace Game2048.AI.TD_Learning
 {
@@ -7,24 +9,31 @@ namespace Game2048.AI.TD_Learning
     {
         private float learningRate;
         private TupleNetwork tupleNetwork;
+        //private TupleNetwork tupleNetwork2;
         private List<TD_State> td_StateChain;
+        //private EndgameClassifier endgameClassifier;
+        private List<ulong> rawBlocksRecord;
 
-        int winCount;
 
-
-        public TD_LearningAI(float learningRate)
+        public TD_LearningAI(float learningRate, out int loadedCount)
         {
             this.learningRate = learningRate;
             tupleNetwork = new TupleNetwork();
+            //tupleNetwork2 = new TupleNetwork();
             td_StateChain = new List<TD_State>();
+            //endgameClassifier = new EndgameClassifier();
+            rawBlocksRecord = new List<ulong>();
 
-            //tupleNetwork.Load();
+            tupleNetwork.Load(out loadedCount);
         }
         public Game.Library.Game Train()
         {
             Game.Library.Game game = PlayGame();
+            double errorRate;
+            //endgameClassifier.TrainContinuousEndgameBoards(rawBlocksRecord, Math.Max(rawBlocksRecord.Count - 30, 0), out errorRate);
             UpdateEvaluation();
             td_StateChain.Clear();
+            rawBlocksRecord.Clear();
 
             return game;
         }
@@ -41,6 +50,7 @@ namespace Game2048.AI.TD_Learning
                     insertedRawBlocks = blocksAfterAdded
                 };
                 td_StateChain.Add(state);
+                rawBlocksRecord.Add(blocksAfterAdded);
             }
             return game;
         }
@@ -73,6 +83,7 @@ namespace Game2048.AI.TD_Learning
             {
                 int result;
                 ulong boardAfter = board.MoveRaw(direction, out result);
+                //return result + (endgameClassifier.IsEndgame(boardAfter) ? tupleNetwork2 : tupleNetwork).GetValue(boardAfter);
                 return result + tupleNetwork.GetValue(boardAfter);
             }
             else
@@ -88,17 +99,35 @@ namespace Game2048.AI.TD_Learning
                 BitBoard board = new BitBoard(td_StateChain[i].insertedRawBlocks);
                 Direction nextDirection = GetBestMove(board);
                 int nextReward = 0;
-                BitBoard nextBoard = board.Move(nextDirection, out nextReward);
+
                 bestMoveNodes[i].bestMove = nextDirection;
+                bestMoveNodes[i].movedRawBlocks = board.MoveRaw(nextDirection, out nextReward);
                 bestMoveNodes[i].reward = nextReward;
-                bestMoveNodes[i].movedRawBlocks = nextBoard.RawBlocks;
             }
-            bestMoveNodes[td_StateChain.Count - 1].reward = 0;
             for (int i = td_StateChain.Count - 1; i >= 0; i--)
             {
                 float score = bestMoveNodes[i].reward + tupleNetwork.GetValue(bestMoveNodes[i].movedRawBlocks);
+                if (i == td_StateChain.Count - 1)
+                {
+                    score = 0;
+                }
                 tupleNetwork.UpdateValue(td_StateChain[i].movedRawBlocks, learningRate * (score - tupleNetwork.GetValue(td_StateChain[i].movedRawBlocks)));
+
+                //if (endgameClassifier.IsEndgame(bestMoveNodes[i].movedRawBlocks))
+                //{
+                //    score = bestMoveNodes[i].reward + tupleNetwork2.GetValue(bestMoveNodes[i].movedRawBlocks);
+                //    if (i == td_StateChain.Count - 1)
+                //    {
+                //        score = 0;
+                //    }
+                //    tupleNetwork2.UpdateValue(td_StateChain[i].movedRawBlocks, learningRate * (score - tupleNetwork2.GetValue(td_StateChain[i].movedRawBlocks)));
+                //}
             }
+        }
+
+        public void SaveTupleNetwork()
+        {
+            tupleNetwork.Save();
         }
     }
 }

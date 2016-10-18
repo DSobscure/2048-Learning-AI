@@ -1,9 +1,17 @@
-﻿namespace Game2048.AI.TD_Learning.TupleFeatures
+﻿using MsgPack.Serialization;
+
+namespace Game2048.AI.TD_Learning.TupleFeatures
 {
     public class FourTupleFeature : TupleFeature
     {
+        [MessagePackMember(id: 1, Name = "index")]
         int index;
 
+        [MessagePackDeserializationConstructor]
+        public FourTupleFeature(float[] tuples, int index) : base(tuples)
+        {
+            this.index = index;
+        }
         public FourTupleFeature(int index) : base(4)
         {
             this.index = index;

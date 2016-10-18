@@ -7,8 +7,10 @@ namespace Game2048.Game.ConsoleVersion
     {
         static void Main(string[] args)
         {
-            TD_LearningAgent agent = new TD_LearningAgent(0.0025f);
-            agent.Training(10000, 1000, ConsoleGameEnvironment.PrintBoard);
+            int loadedCount;
+            TD_LearningAgent agent = new TD_LearningAgent(0.0025f, out loadedCount);
+            Console.WriteLine("Loaded {0} TupleFeatures", loadedCount);
+            agent.Training(500000, 1000, ConsoleGameEnvironment.PrintBoard);
             //Game.Library.Game game = new Library.Game();
             //ConsoleGameEnvironment.PrintBoard(game.Board);
             //while (!game.IsEnd)

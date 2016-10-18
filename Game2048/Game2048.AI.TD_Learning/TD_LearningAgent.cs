@@ -9,9 +9,9 @@ namespace Game2048.AI.TD_Learning
     {
         private TD_LearningAI ai;
 
-        public TD_LearningAgent(float learningRate)
+        public TD_LearningAgent(float learningRate, out int loadedCount)
         {
-            ai = new TD_LearningAI(learningRate);
+            ai = new TD_LearningAI(learningRate, out loadedCount);
         }
 
         public void Training(int trainingTimes, int recordSize, Action<BitBoard> printBoardFunction)
@@ -26,8 +26,8 @@ namespace Game2048.AI.TD_Learning
             int maxStep = int.MinValue;
             int minStep = int.MaxValue;
             int winCount = 0;
-            BitBoard minBoard = new BitBoard(0);
-            BitBoard maxBoard = new BitBoard(0);
+            BitBoard minBoard = null;
+            BitBoard maxBoard = null;
             float totalSecond = 0;
             int totalSteps = 0;
             for (int i = 1; i <= trainingTimes; i++)
@@ -46,13 +46,13 @@ namespace Game2048.AI.TD_Learning
                 if (game.Score > maxScore)
                 {
                     maxScore = game.Score;
-                    maxBoard = game.Board;
+                    maxBoard = new BitBoard(game.Board.RawBlocks);
                 }
 
                 if (game.Score < minScore)
                 {
                     minScore = game.Score;
-                    minBoard = game.Board;
+                    minBoard = new BitBoard(game.Board.RawBlocks);
                 }
 
                 if (game.Step > maxStep)
@@ -115,7 +115,13 @@ namespace Game2048.AI.TD_Learning
                     minStep = 1000000;
                     totalSecond = 0;
                     totalSteps = 0;
+                    maxScore = int.MinValue;
+                    minScore = int.MaxValue;
                     scores.Clear();
+                    minBoard = null;
+                    maxBoard = null;
+
+                    ai.SaveTupleNetwork();
                 }
             }
         }
