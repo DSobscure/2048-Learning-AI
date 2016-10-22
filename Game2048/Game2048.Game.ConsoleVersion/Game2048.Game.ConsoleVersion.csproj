@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleGameEnvironment.cs" />
+    <Compile Include="EndgameTrainer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -50,6 +51,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Game2048.AI.NeuralNetwork\Game2048.AI.NeuralNetwork.csproj">
+      <Project>{0507eab8-579f-4bb3-83cc-79c7a5257fd5}</Project>
+      <Name>Game2048.AI.NeuralNetwork</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Game2048.AI.TD_Learning\Game2048.AI.TD_Learning.csproj">
       <Project>{b2b9485c-062a-4ad6-a430-e4d6d41c4021}</Project>
       <Name>Game2048.AI.TD_Learning</Name>

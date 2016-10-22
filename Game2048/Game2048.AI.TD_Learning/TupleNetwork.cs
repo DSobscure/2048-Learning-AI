@@ -9,11 +9,25 @@ namespace Game2048.AI.TD_Learning
     {
         public List<TupleFeature> featureSet;
         private ulong[] rotatedBoards;
+        public string NetworkName { get; private set; }
 
-        public TupleNetwork()
+        public TupleNetwork(string networkName, int index)
         {
+            NetworkName = networkName;
             featureSet = new List<TupleFeature>();
-            featureSet.Add(new FourTupleFeature(3));
+            switch (index)
+            {
+                case 0:
+                    featureSet.Add(new FiveTupleFeature(3));
+                    break;
+                case 1:
+                    featureSet.Add(new FourTupleFeature(3));
+                    featureSet.Add(new FourTupleFeature(7));
+                    featureSet.Add(new FiveTupleFeature(3));
+                    break;
+            }
+
+            //featureSet.Add(new FourTupleFeature(3));
             //featureSet.Add(new FourTupleFeature(7));
             //featureSet.Add(new FiveTupleFeature(3));
             //featureSet.Add(new FiveTupleFeature(2));
@@ -71,15 +85,15 @@ namespace Game2048.AI.TD_Learning
             {
                 if(featureSet[i] is FourTupleFeature)
                 {
-                    File.WriteAllBytes("FourTupleFeature_Index" + i.ToString(), TupleFeature.Serialize(featureSet[i] as FourTupleFeature));
+                    File.WriteAllBytes(NetworkName + "FourTupleFeature_Index" + i.ToString(), SerializationHelper.Serialize(featureSet[i] as FourTupleFeature));
                 }
                 else if(featureSet[i] is FiveTupleFeature)
                 {
-                    File.WriteAllBytes("FiveTupleFeature_Index" + i.ToString(), TupleFeature.Serialize(featureSet[i] as FiveTupleFeature));
+                    File.WriteAllBytes(NetworkName + "FiveTupleFeature_Index" + i.ToString(), SerializationHelper.Serialize(featureSet[i] as FiveTupleFeature));
                 }
                 else if(featureSet[i] is SixTupleFeature)
                 {
-                    File.WriteAllBytes("SixTupleFeature_Index" + i.ToString(), TupleFeature.Serialize(featureSet[i] as SixTupleFeature));
+                    File.WriteAllBytes(NetworkName + "SixTupleFeature_Index" + i.ToString(), SerializationHelper.Serialize(featureSet[i] as SixTupleFeature));
                 }
             }
         }
@@ -88,17 +102,17 @@ namespace Game2048.AI.TD_Learning
             loadedCount = featureSet.Count;
             for (int i = 0; i < featureSet.Count; i++)
             {
-                if (featureSet[i] is FourTupleFeature && File.Exists("FourTupleFeature_Index" + i.ToString()))
+                if (featureSet[i] is FourTupleFeature && File.Exists(NetworkName + "FourTupleFeature_Index" + i.ToString()))
                 {
-                    featureSet[i] = TupleFeature.Deserialize<FourTupleFeature>(File.ReadAllBytes("FourTupleFeature_Index" + i.ToString()));
+                    featureSet[i] = SerializationHelper.Deserialize<FourTupleFeature>(File.ReadAllBytes(NetworkName + "FourTupleFeature_Index" + i.ToString()));
                 }
-                else if (featureSet[i] is FiveTupleFeature && File.Exists("FiveTupleFeature_Index" + i.ToString()))
+                else if (featureSet[i] is FiveTupleFeature && File.Exists(NetworkName + "FiveTupleFeature_Index" + i.ToString()))
                 {
-                    featureSet[i] = TupleFeature.Deserialize<FiveTupleFeature>(File.ReadAllBytes("FourTupleFeature_Index" + i.ToString()));
+                    featureSet[i] = SerializationHelper.Deserialize<FiveTupleFeature>(File.ReadAllBytes(NetworkName + "FiveTupleFeature_Index" + i.ToString()));
                 }
-                else if (featureSet[i] is SixTupleFeature && File.Exists("SixTupleFeature_Index" + i.ToString()))
+                else if (featureSet[i] is SixTupleFeature && File.Exists(NetworkName + "SixTupleFeature_Index" + i.ToString()))
                 {
-                    featureSet[i] = TupleFeature.Deserialize<SixTupleFeature>(File.ReadAllBytes("FourTupleFeature_Index" + i.ToString()));
+                    featureSet[i] = SerializationHelper.Deserialize<SixTupleFeature>(File.ReadAllBytes(NetworkName + "SixTupleFeature_Index" + i.ToString()));
                 }
                 else
                 {

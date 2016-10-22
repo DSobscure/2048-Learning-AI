@@ -6,6 +6,7 @@ namespace Game2048.AI.TD_Learning
     {
         public Direction bestMove;
         public int reward;
+        public ulong rawBlocks;
         public ulong movedRawBlocks;
     };
 }

@@ -49,6 +49,7 @@
     <Compile Include="Direction.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializationHelper.cs" />
     <Compile Include="TableSets\BitBoardScoreTableSet.cs" />
     <Compile Include="TableSets\BitBoardShiftTableSet.cs" />
     <Compile Include="TableSets\MathComputationTableSet.cs" />

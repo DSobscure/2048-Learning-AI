@@ -1,30 +1,12 @@
 ﻿using Game2048.Game.Library;
 using MsgPack.Serialization;
 using System;
-using System.IO;
+
 
 namespace Game2048.AI.TD_Learning
 {
     public abstract class TupleFeature
     {
-        public static T Deserialize<T>(byte[] data)
-        {
-            var serializer = MessagePackSerializer.Get<T>();
-            using (MemoryStream ms = new MemoryStream(data))
-            {
-                return serializer.Unpack(ms);
-            }
-        }
-
-        public static byte[] Serialize<T>(T data)
-        {
-            var serializer = MessagePackSerializer.Get<T>();
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                serializer.Pack(memoryStream, data);
-                return memoryStream.ToArray();
-            }
-        }
         [MessagePackMember(id:0, Name = "tuples")]
         protected float[] tuples;
         public virtual void UpdateScore(ulong rawBlocks, float delta)

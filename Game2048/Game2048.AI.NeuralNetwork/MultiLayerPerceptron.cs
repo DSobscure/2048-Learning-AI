@@ -1,18 +1,36 @@
-﻿using System;
+﻿using MsgPack.Serialization;
+using System;
 using System.Linq;
 
 namespace Game2048.AI.NeuralNetwork
 {
     public class MultiLayerPerceptron
     {
+        [MessagePackMember(id:0, Name = "InputDimension")]
         public int InputDimension { get; protected set; }
+        [MessagePackMember(id: 1, Name = "OutputDimension")]
         public int OutputDimension { get; protected set; }
+        [MessagePackMember(id: 2, Name = "HiddenLayerNumber")]
         public int HiddenLayerNumber { get; protected set; }
+        [MessagePackMember(id: 3, Name = "weights")]
         private double[][][] weights;
+        [MessagePackMember(id: 4, Name = "LearningRate")]
         public double LearningRate { get; protected set; }
         public Func<double, double> ActivationFunction { get; protected set; }
         public Func<double, double> dActivationFunction { get; protected set; }
 
+        [MessagePackDeserializationConstructor]
+        public MultiLayerPerceptron()
+        {
+            ActivationFunction = (input) =>
+            {
+                return 1.0 / (1.0 + Math.Exp(-input));
+            };
+            dActivationFunction = (input) =>
+            {
+                return ActivationFunction(input) * (1 - ActivationFunction(input));
+            };
+        }
         public MultiLayerPerceptron(int inputDimension, int outputDimension, int hiddenLayerNumber, int[] hiddenLayerNodeNumber, double learningRate, Func<double, double> activationFunction, Func<double, double> dActivationFunction)
         {
             InputDimension = inputDimension;

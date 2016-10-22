@@ -5,6 +5,19 @@ namespace Game2048.Game.Library
 {
     public class BitBoard
     {
+        public static int RawEmptyCountTest(ulong rawBoard)
+        {
+            int result = 0;
+            for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
+            {
+                if (((rawBoard >> shiftBitCount) & 0xf) == 0)
+                {
+                    result++;
+                }
+            }
+            return result;
+        }
+
         private ulong rawBlocks;
         public ulong RawBlocks { get { return rawBlocks; } }
         public int EmptyCount

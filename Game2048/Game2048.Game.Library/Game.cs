@@ -19,6 +19,12 @@
             Score = 0;
             Step = 0;
         }
+        public Game(ulong rawBoard)
+        {
+            Board = new BitBoard(rawBoard);
+            Score = 0;
+            Step = 0;
+        }
         public ulong Move(Direction direction)
         {
             ulong movedRawBlocks= Board.RawBlocks;

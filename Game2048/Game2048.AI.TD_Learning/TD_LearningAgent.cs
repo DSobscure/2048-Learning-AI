@@ -1,6 +1,7 @@
-﻿using Game2048.Game.Library;
-using System.Collections.Generic;
+﻿using Game2048.AI.NeuralNetwork;
+using Game2048.Game.Library;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Game2048.AI.TD_Learning
@@ -14,7 +15,7 @@ namespace Game2048.AI.TD_Learning
             ai = new TD_LearningAI(learningRate, out loadedCount);
         }
 
-        public void Training(int trainingTimes, int recordSize, Action<BitBoard> printBoardFunction)
+        public void Training(int trainingTimes, int recordSize, Action<BitBoard> printBoardFunction, bool isUsedGivenRawBoards = false, IEnumerable<ulong> givenRawBoards = null)
         {
             List<float> scores = new List<float>();
             int maxScore = int.MinValue;
@@ -30,10 +31,34 @@ namespace Game2048.AI.TD_Learning
             BitBoard maxBoard = null;
             float totalSecond = 0;
             int totalSteps = 0;
+            IEnumerator<ulong> rawBoardEnumerator = null;
+            int solvedEndgameCounter = 0;
+
+            if (isUsedGivenRawBoards)
+            {
+                rawBoardEnumerator = givenRawBoards.GetEnumerator();
+            }
             for (int i = 1; i <= trainingTimes; i++)
             {
                 DateTime startTime = DateTime.Now;
-                Game.Library.Game game = ai.Train();
+                Game.Library.Game game;
+                if (isUsedGivenRawBoards)
+                {
+                    game = ai.Train(isUsedGivenRawBoards, rawBoardEnumerator.Current);
+                    if(!rawBoardEnumerator.MoveNext())
+                    {
+                        rawBoardEnumerator.Reset();
+                        Console.WriteLine("Reset");
+                    }
+                    if(!game.IsEnd)
+                    {
+                        solvedEndgameCounter++;
+                    }
+                }
+                else
+                {
+                    game = ai.Train();
+                }
                 totalSecond += Convert.ToSingle((DateTime.Now - startTime).TotalSeconds);
                 totalSteps += game.Step;
                 scores.Add(game.Score);
@@ -91,6 +116,7 @@ namespace Game2048.AI.TD_Learning
                     double deviation = Math.Sqrt(scores.Sum(x => Math.Pow(x - totalScore / recordSize, 2)) / recordSize);
 
                     Console.WriteLine("Round: {0} AvgScore: {1}", i, totalScore / recordSize);
+                    Console.WriteLine("Endgame Solved Rate: {0}", solvedEndgameCounter / (double)recordSize);
                     Console.WriteLine("Max Score: {0}", scores.Max());
                     Console.WriteLine("Min Score: {0}", scores.Min());
                     Console.WriteLine("Max Steps: {0}", maxStep);
@@ -120,10 +146,13 @@ namespace Game2048.AI.TD_Learning
                     scores.Clear();
                     minBoard = null;
                     maxBoard = null;
+                    solvedEndgameCounter = 0;
 
                     ai.SaveTupleNetwork();
                 }
             }
+            //EndgameRawBoardSet.Save();
+            //NormalRawBoardSet.Save();
         }
     }
 }

@@ -9,37 +9,57 @@ namespace Game2048.AI.TD_Learning
     {
         private float learningRate;
         private TupleNetwork tupleNetwork;
-        //private TupleNetwork tupleNetwork2;
+        private TupleNetwork normalTupleNetwork;
+        private TupleNetwork endgameTupleNetwork;
+
         private List<TD_State> td_StateChain;
-        //private EndgameClassifier endgameClassifier;
+
+        private EndgameClassifier endgameClassifier;
+        private EndgameClassifier endgameClassifier2;
+
         private List<ulong> rawBlocksRecord;
+        private bool isUsedEndgameNetwork;
 
 
         public TD_LearningAI(float learningRate, out int loadedCount)
         {
             this.learningRate = learningRate;
-            tupleNetwork = new TupleNetwork();
-            //tupleNetwork2 = new TupleNetwork();
+            //tupleNetwork = new TupleNetwork("TrainedEndgameTD");
+            normalTupleNetwork = new TupleNetwork("TrainedNormalTD", 1);
+            endgameTupleNetwork = new TupleNetwork("TrainedEndgameTD", 1);
             td_StateChain = new List<TD_State>();
-            //endgameClassifier = new EndgameClassifier();
+            endgameClassifier = new EndgameClassifier("EndgameClassifier_LearningRate0.01_Layers64_64_64_16_4");
             rawBlocksRecord = new List<ulong>();
 
-            tupleNetwork.Load(out loadedCount);
+            //tupleNetwork.Load(out loadedCount);
+            int normalLoadedCount, endgameLoadedCount;
+            normalTupleNetwork.Load(out normalLoadedCount);
+            endgameTupleNetwork.Load(out endgameLoadedCount);
+            loadedCount = normalLoadedCount + endgameLoadedCount;
+
+            
         }
-        public Game.Library.Game Train()
+        public Game.Library.Game Train(bool isUsedRawBoard = false, ulong rawBoard = 0)
         {
-            Game.Library.Game game = PlayGame();
-            double errorRate;
-            //endgameClassifier.TrainContinuousEndgameBoards(rawBlocksRecord, Math.Max(rawBlocksRecord.Count - 30, 0), out errorRate);
-            UpdateEvaluation();
+            Game.Library.Game game = PlayGame(isUsedRawBoard, rawBoard);
+            //for (int i = changeTupleIndex; i + 2000 < rawBlocksRecord.Count; i++)
+            //{
+            //    NormalRawBoardSet.AddRawBoard(rawBlocksRecord[i]);
+            //}
+            //if (rawBlocksRecord.Count > 200)
+            //    EndgameRawBoardSet.AddRawBoard(rawBlocksRecord[rawBlocksRecord.Count - 20]);
+            //UpdateEvaluation();
             td_StateChain.Clear();
             rawBlocksRecord.Clear();
 
             return game;
         }
-        public Game.Library.Game PlayGame()
+        public Game.Library.Game PlayGame(bool isUsedRawBoard = false, ulong rawBoard = 0)
         {
-            Game.Library.Game game = new Game.Library.Game();
+            tupleNetwork = normalTupleNetwork;
+            isUsedEndgameNetwork = false;
+
+            Game.Library.Game game = (isUsedRawBoard) ? new Game.Library.Game(rawBoard) : new Game.Library.Game();
             while (!game.IsEnd)
             {
                 ulong movedRawBlocks = game.Move(GetBestMove(game.Board));
@@ -51,6 +71,18 @@ namespace Game2048.AI.TD_Learning
                 };
                 td_StateChain.Add(state);
                 rawBlocksRecord.Add(blocksAfterAdded);
+                //if (!isUsedEndgameNetwork && endgameClassifier.IsEndgame(blocksAfterAdded))
+                //{
+                //    isUsedEndgameNetwork = true;
+                //    tupleNetwork = endgameTupleNetwork;
+                //    //changeTupleIndex = game.Step - 1;
+                //}
+                //else if(isUsedEndgameNetwork && !isUsedEndgame2Network && endgameClassifier2.IsEndgame(blocksAfterAdded))
+                //{
+                //    isUsedEndgame2Network = true;
+                //    tupleNetwork = endgame2TupleNetwork;
+                //}
+
             }
             return game;
         }
@@ -83,7 +115,6 @@ namespace Game2048.AI.TD_Learning
             {
                 int result;
                 ulong boardAfter = board.MoveRaw(direction, out result);
-                //return result + (endgameClassifier.IsEndgame(boardAfter) ? tupleNetwork2 : tupleNetwork).GetValue(boardAfter);
                 return result + tupleNetwork.GetValue(boardAfter);
             }
             else
@@ -101,33 +132,26 @@ namespace Game2048.AI.TD_Learning
                 int nextReward = 0;
 
                 bestMoveNodes[i].bestMove = nextDirection;
+                bestMoveNodes[i].rawBlocks = board.RawBlocks;
                 bestMoveNodes[i].movedRawBlocks = board.MoveRaw(nextDirection, out nextReward);
                 bestMoveNodes[i].reward = nextReward;
             }
             for (int i = td_StateChain.Count - 1; i >= 0; i--)
             {
                 float score = bestMoveNodes[i].reward + tupleNetwork.GetValue(bestMoveNodes[i].movedRawBlocks);
-                if (i == td_StateChain.Count - 1)
+                if (i == td_StateChain.Count - 1 && bestMoveNodes[i].rawBlocks == bestMoveNodes[i].movedRawBlocks)
                 {
                     score = 0;
                 }
                 tupleNetwork.UpdateValue(td_StateChain[i].movedRawBlocks, learningRate * (score - tupleNetwork.GetValue(td_StateChain[i].movedRawBlocks)));
-
-                //if (endgameClassifier.IsEndgame(bestMoveNodes[i].movedRawBlocks))
-                //{
-                //    score = bestMoveNodes[i].reward + tupleNetwork2.GetValue(bestMoveNodes[i].movedRawBlocks);
-                //    if (i == td_StateChain.Count - 1)
-                //    {
-                //        score = 0;
-                //    }
-                //    tupleNetwork2.UpdateValue(td_StateChain[i].movedRawBlocks, learningRate * (score - tupleNetwork2.GetValue(td_StateChain[i].movedRawBlocks)));
-                //}
             }
         }
 
         public void SaveTupleNetwork()
         {
-            tupleNetwork.Save();
+            //tupleNetwork.Save();
+            //normalTupleNetwork.Save();
+            //endgameTupleNetwork.Save();
         }
     }
 }
