@@ -1,14 +1,13 @@
-﻿using Game2048.Game.Library;
-using MsgPack.Serialization;
+﻿using MsgPack.Serialization;
 using System;
 
-namespace Game2048.AI.TD_Learning
+namespace Game2048.AI.GoalBasedLearning
 {
-    public abstract class TupleFeature
+    public abstract class ExtendedTupleFeature
     {
-        [MessagePackMember(id:0, Name = "tuples")]
+        [MessagePackMember(id: 0, Name = "tuples")]
         protected float[] tuples;
-        public void UpdateScore(ulong rawBlocks, float delta)
+        public void UpdateScore(ExtendedBitBoard rawBlocks, float delta)
         {
             for (int i = 0; i < 4; i++)
             {
@@ -20,7 +19,7 @@ namespace Game2048.AI.TD_Learning
                     tuples[symmetricIndex] += delta;
             }
         }
-        public float GetScore(ulong blocks)
+        public float GetScore(ExtendedBitBoard rawBlocks)
         {
             float sum = 0;
             for (int i = 0; i < 4; i++)
@@ -34,33 +33,33 @@ namespace Game2048.AI.TD_Learning
             }
             return sum;
         }
-        public abstract int GetIndex(ulong blocks);
+        public abstract int GetIndex(ExtendedBitBoard rawBlocks);
 
-        public ulong[] rotateBoards;
+        public ExtendedBitBoard[] rotateBoards;
         [MessagePackDeserializationConstructor]
-        protected TupleFeature(float[] tuples)
+        protected ExtendedTupleFeature(float[] tuples)
         {
             this.tuples = tuples;
         }
-        protected TupleFeature(int tupleNumber)
+        protected ExtendedTupleFeature(int tupleNumber)
         {
-            tuples = new float[(int)Math.Pow(16, tupleNumber)];
+            tuples = new float[(int)Math.Pow(32, tupleNumber)];
         }
-        
-        public void SetSymmetricBoards(ulong[] rotateSymmetry)
+
+        public void SetSymmetricBoards(ExtendedBitBoard[] rotateSymmetry)
         {
             rotateBoards = rotateSymmetry;
         }
-        public unsafe ulong GetMirrorSymmetricRawBlocks(ulong rawBlocks)
+        public unsafe ExtendedBitBoard GetMirrorSymmetricRawBlocks(ExtendedBitBoard rawBlocks)
         {
-            ushort* reversedRowContents = stackalloc ushort[4];
+            uint* reversedRowContents = stackalloc uint[4];
 
             for (int i = 0; i < 4; i++)
             {
-                reversedRowContents[i] = BitBoardOperationSet.ReverseRow(BitBoardOperationSet.GetRow(rawBlocks, i));
+                reversedRowContents[i] = ExtendedBitBoardOperationSet.ReverseRow(ExtendedBitBoardOperationSet.GetRow(rawBlocks, i));
             }
 
-            return BitBoardOperationSet.SetRows(reversedRowContents); ;
+            return ExtendedBitBoardOperationSet.SetRows(reversedRowContents); ;
         }
     }
 }
