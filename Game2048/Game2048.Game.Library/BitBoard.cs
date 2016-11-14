@@ -5,15 +5,54 @@ namespace Game2048.Game.Library
 {
     public class BitBoard
     {
-        public static int RawEmptyCountTest(ulong rawBoard)
+        private static Random newTileRandomGenerator = new Random((int)DateTime.Now.ToBinary());
+        public static int RawEmptyCountTest(ulong rawBlocks)
         {
             int result = 0;
             for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
             {
-                if (((rawBoard >> shiftBitCount) & 0xf) == 0)
+                if (((rawBlocks >> shiftBitCount) & 0xf) == 0)
                 {
                     result++;
                 }
+            }
+            return result;
+        }
+        public static int MaxTileTest(ulong rawBlocks)
+        {
+            int maxTile = 1;
+            for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
+            {
+                int tileNumber = (int)((rawBlocks >> shiftBitCount) & 0xf);
+                if (BitBoardScoreTableSet.tileScoreTable[tileNumber] > maxTile)
+                {
+                    maxTile = BitBoardScoreTableSet.tileScoreTable[tileNumber];
+                }
+            }
+            return maxTile;
+        }
+        public static int RawMaxTileTest(ulong rawBlocks)
+        {
+            int maxTile = 1;
+            for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
+            {
+                int tileNumber = (int)((rawBlocks >> shiftBitCount) & 0xf);
+                if (tileNumber > maxTile)
+                {
+                    maxTile = tileNumber;
+                }
+            }
+            return maxTile;
+        }
+        public static ulong InversBlocks(ulong rawBlocks)
+        {
+            int maxTile = RawMaxTileTest(rawBlocks);
+            ulong result = 0;
+            for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
+            {
+                int tileNumber = (int)((rawBlocks >> shiftBitCount) & 0xf);
+                int inverseNumber = (tileNumber != 0) ? maxTile - tileNumber : 15;
+                result |= ((ulong)inverseNumber) << shiftBitCount;
             }
             return result;
         }
@@ -100,13 +139,12 @@ namespace Game2048.Game.Library
         }
         public void InsertNewTile()
         {
-            Random randomGenerator = new Random((int)DateTime.Now.ToBinary());
             int emptyCountCache = EmptyCount;
             if (emptyCountCache > 0)
             {
-                ulong tile = (randomGenerator.Next(0, 9) == 0) ? 2UL : 1UL;
+                ulong tile = (newTileRandomGenerator.Next(0, 9) == 0) ? 2UL : 1UL;
 
-                int targetIndex = randomGenerator.Next(0, emptyCountCache - 1);
+                int targetIndex = newTileRandomGenerator.Next(0, emptyCountCache - 1);
                 for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
                 {
                     if (((rawBlocks >> shiftBitCount) & 0xf) == 0)
@@ -271,6 +309,18 @@ namespace Game2048.Game.Library
         {
             int reward;
             return rawBlocks != MoveRaw(direction, out reward);
+        }
+        public int TileCount(int tile)
+        {
+            int result = 0;
+            for (int i = 0; i < 64; i += 4)
+            {
+                if (BitBoardScoreTableSet.tileScoreTable[((rawBlocks >> i) & 0xf)] == tile)
+                {
+                    result++;
+                }
+            }
+            return result;
         }
     }
 }

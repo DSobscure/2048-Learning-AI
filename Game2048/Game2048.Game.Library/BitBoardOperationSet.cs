@@ -60,7 +60,7 @@ namespace Game2048.Game.Library
             board = (board & columnMask) << 4 * columnIndex;
             return (ushort)(GetRow(board, 0) | (GetRow(board, 1) >> 4) | (GetRow(board, 2) >> 8) | (GetRow(board, 3) >> 12));
         }
-        public static ulong SetRows(ushort[] rows)
+        public unsafe static ulong SetRows(ushort* rows)
         {
             ulong result = 0;
             result |= (ulong)rows[0] << 48;
@@ -69,7 +69,7 @@ namespace Game2048.Game.Library
             result |= rows[3];
             return result;
         }
-        public static ulong SetColumns(ushort[] columns)
+        public unsafe static ulong SetColumns(ushort* columns)
         {
             return Transpose(SetRows(columns));
         }

@@ -8,6 +8,7 @@ namespace Game2048.AI.TD_Learning
 {
     public class TD_LearningAgent
     {
+        public static Action<BitBoard> PrintBoardFunction { get; private set; }
         private TD_LearningAI ai;
 
         public TD_LearningAgent(float learningRate, out int loadedCount)
@@ -17,6 +18,8 @@ namespace Game2048.AI.TD_Learning
 
         public void Training(int trainingTimes, int recordSize, Action<BitBoard> printBoardFunction, bool isUsedGivenRawBoards = false, IEnumerable<ulong> givenRawBoards = null)
         {
+            PrintBoardFunction = printBoardFunction;
+
             List<float> scores = new List<float>();
             int maxScore = int.MinValue;
             int minScore = int.MaxValue;
@@ -26,13 +29,12 @@ namespace Game2048.AI.TD_Learning
             int minCount = 0;
             int maxStep = int.MinValue;
             int minStep = int.MaxValue;
-            int winCount = 0;
+            int winCount = 0, win4096Count = 0, win8192Count = 0, win16384Count = 0;
             BitBoard minBoard = null;
             BitBoard maxBoard = null;
             float totalSecond = 0;
             int totalSteps = 0;
             IEnumerator<ulong> rawBoardEnumerator = null;
-            int solvedEndgameCounter = 0;
 
             if (isUsedGivenRawBoards)
             {
@@ -50,10 +52,6 @@ namespace Game2048.AI.TD_Learning
                         rawBoardEnumerator.Reset();
                         Console.WriteLine("Reset");
                     }
-                    if(!game.IsEnd)
-                    {
-                        solvedEndgameCounter++;
-                    }
                 }
                 else
                 {
@@ -66,6 +64,18 @@ namespace Game2048.AI.TD_Learning
                 if (game.Board.MaxTile >= 2048)
                 {
                     winCount++;
+                    if(game.Board.MaxTile >= 4096)
+                    {
+                        win4096Count++;
+                        if(game.Board.MaxTile >= 8192)
+                        {
+                            win8192Count++;
+                            if (game.Board.MaxTile >= 16384)
+                            {
+                                win16384Count++;
+                            }
+                        }
+                    }
                 }
 
                 if (game.Score > maxScore)
@@ -109,30 +119,33 @@ namespace Game2048.AI.TD_Learning
                 {
                     minCount++;
                 }
-
                 if (i % recordSize == 0)
                 {
                     float totalScore = scores.Sum();
                     double deviation = Math.Sqrt(scores.Sum(x => Math.Pow(x - totalScore / recordSize, 2)) / recordSize);
 
                     Console.WriteLine("Round: {0} AvgScore: {1}", i, totalScore / recordSize);
-                    Console.WriteLine("Endgame Solved Rate: {0}", solvedEndgameCounter / (double)recordSize);
                     Console.WriteLine("Max Score: {0}", scores.Max());
                     Console.WriteLine("Min Score: {0}", scores.Min());
                     Console.WriteLine("Max Steps: {0}", maxStep);
                     Console.WriteLine("Min Steps: {0}", minStep);
                     Console.WriteLine("Win Rate: {0}", winCount * 1.0 / recordSize);
+                    Console.WriteLine("Win4096 Rate: {0}", win4096Count * 1.0 / recordSize);
+                    Console.WriteLine("Win8192 Rate: {0}", win8192Count * 1.0 / recordSize);
+                    Console.WriteLine("Win16384 Rate: {0}", win16384Count * 1.0 / recordSize);
                     Console.WriteLine("Max Tile: {0} #{1}", maxTile, maxCount);
                     Console.WriteLine("Min Tile: {0} #{1}", minTile, minCount);
                     Console.WriteLine("標準差: {0}", deviation);
                     Console.WriteLine("Delta Time: {0} seconds", totalSecond);
                     Console.WriteLine("Average Speed: {0}moves/sec", totalSteps / totalSecond);
-
                     Console.WriteLine();
                     printBoardFunction(minBoard);
                     printBoardFunction(maxBoard);
 
                     winCount = 0;
+                    win4096Count = 0;
+                    win8192Count = 0;
+                    win16384Count = 0;
                     maxTile = 0;
                     minTile = 65536;
                     maxCount = 0;
@@ -146,9 +159,8 @@ namespace Game2048.AI.TD_Learning
                     scores.Clear();
                     minBoard = null;
                     maxBoard = null;
-                    solvedEndgameCounter = 0;
-
-                    ai.SaveTupleNetwork();
+                    if (i % 10000 == 0)
+                        ai.SaveTupleNetwork();
                 }
             }
             //EndgameRawBoardSet.Save();

@@ -13,52 +13,52 @@ namespace Game2048.AI.NeuralNetwork
         [MessagePackMember(id: 2, Name = "HiddenLayerNumber")]
         public int HiddenLayerNumber { get; protected set; }
         [MessagePackMember(id: 3, Name = "weights")]
-        private double[][][] weights;
+        private float[][][] weights;
         [MessagePackMember(id: 4, Name = "LearningRate")]
-        public double LearningRate { get; protected set; }
-        public Func<double, double> ActivationFunction { get; protected set; }
-        public Func<double, double> dActivationFunction { get; protected set; }
+        public float LearningRate { get; protected set; }
+        public Func<float, float> ActivationFunction { get; protected set; }
+        public Func<float, float> dActivationFunction { get; protected set; }
 
         [MessagePackDeserializationConstructor]
         public MultiLayerPerceptron()
         {
             ActivationFunction = (input) =>
             {
-                return 1.0 / (1.0 + Math.Exp(-input));
+                return 1 / (float)(1.0 + Math.Exp(-input));
             };
             dActivationFunction = (input) =>
             {
                 return ActivationFunction(input) * (1 - ActivationFunction(input));
             };
         }
-        public MultiLayerPerceptron(int inputDimension, int outputDimension, int hiddenLayerNumber, int[] hiddenLayerNodeNumber, double learningRate, Func<double, double> activationFunction, Func<double, double> dActivationFunction)
+        public MultiLayerPerceptron(int inputDimension, int outputDimension, int hiddenLayerNumber, int[] hiddenLayerNodeNumber, float learningRate, Func<float, float> activationFunction, Func<float, float> dActivationFunction)
         {
             InputDimension = inputDimension;
             OutputDimension = outputDimension;
             HiddenLayerNumber = hiddenLayerNumber;
-            weights = new double[hiddenLayerNumber + 1][][];
+            weights = new float[hiddenLayerNumber + 1][][];
             int perviousLayerDimension = inputDimension;
             Random randomGenerator = new Random(Guid.NewGuid().GetHashCode());
             for (int i = 0; i < hiddenLayerNumber; i++)
             {
-                weights[i] = new double[hiddenLayerNodeNumber[i]][];
+                weights[i] = new float[hiddenLayerNodeNumber[i]][];
                 for (int j = 0; j < hiddenLayerNodeNumber[i]; j++)
                 {
-                    weights[i][j] = new double[perviousLayerDimension + 1];
+                    weights[i][j] = new float[perviousLayerDimension + 1];
                     for (int k = 0; k < perviousLayerDimension + 1; k++)
                     {
-                        weights[i][j][k] = randomGenerator.NextDouble() * 2 - 1;
+                        weights[i][j][k] = (float)(randomGenerator.NextDouble() * 2 - 1);
                     }
                 }
                 perviousLayerDimension = hiddenLayerNodeNumber[i];
             }
-            weights[hiddenLayerNumber] = new double[outputDimension][];
+            weights[hiddenLayerNumber] = new float[outputDimension][];
             for (int i = 0; i < outputDimension; i++)
             {
-                weights[hiddenLayerNumber][i] = new double[perviousLayerDimension + 1];
+                weights[hiddenLayerNumber][i] = new float[perviousLayerDimension + 1];
                 for (int j = 0; j < perviousLayerDimension + 1; j++)
                 {
-                    weights[hiddenLayerNumber][i][j] = randomGenerator.NextDouble() * 2 - 1;
+                    weights[hiddenLayerNumber][i][j] = (float)(randomGenerator.NextDouble() * 2 - 1);
                 }
             }
             LearningRate = learningRate;
@@ -70,44 +70,51 @@ namespace Game2048.AI.NeuralNetwork
             return weights[layer].Length;
         }
 
-        public double[] Compute(double[] input)
+        public unsafe float[] Compute(float[] input)
         {
-            double[] output = null;
+            float[] output = null;
             int perviousLayerDimension = InputDimension;
             for (int layerIndex = 0; layerIndex < HiddenLayerNumber; layerIndex++)
             {
-                output = new double[weights[layerIndex].Length];
-                for (int nodeIndex = 0; nodeIndex < weights[layerIndex].Length; nodeIndex++)
+                output = new float[weights[layerIndex].Length];
+                int weightsLength = weights[layerIndex].Length;
+                for (int nodeIndex = 0; nodeIndex < weightsLength; nodeIndex++)
                 {
-                    double sum = weights[layerIndex][nodeIndex][perviousLayerDimension];
-                    for (int weightsIndex = 0; weightsIndex < perviousLayerDimension; weightsIndex++)
+                    fixed (float* weightsPointer = weights[layerIndex][nodeIndex])
                     {
-                        sum += weights[layerIndex][nodeIndex][weightsIndex] * input[weightsIndex];
+                        float sum = weightsPointer[perviousLayerDimension];
+                        for (int weightsIndex = 0; weightsIndex != perviousLayerDimension; weightsIndex++)
+                        {
+                            sum += weightsPointer[weightsIndex] * input[weightsIndex];
+                        }
+                        output[nodeIndex] = ActivationFunction(sum);
                     }
-                    output[nodeIndex] = ActivationFunction(sum);
                 }
                 perviousLayerDimension = weights[layerIndex].Length;
                 input = output;
             }
-            output = new double[OutputDimension];
+            output = new float[OutputDimension];
             for (int nodeIndex = 0; nodeIndex < OutputDimension; nodeIndex++)
             {
-                double sum = weights[HiddenLayerNumber][nodeIndex][perviousLayerDimension];
-                for (int weightsIndex = 0; weightsIndex < perviousLayerDimension; weightsIndex++)
+                fixed (float* weightsPointer = weights[HiddenLayerNumber][nodeIndex])
                 {
-                    sum += weights[HiddenLayerNumber][nodeIndex][weightsIndex] * input[weightsIndex];
+                    float sum = weightsPointer[perviousLayerDimension];
+                    for (int weightsIndex = 0; weightsIndex != perviousLayerDimension; weightsIndex++)
+                    {
+                        sum += weightsPointer[weightsIndex] * input[weightsIndex];
+                    }
+                    output[nodeIndex] = ActivationFunction(sum);
                 }
-                output[nodeIndex] = ActivationFunction(sum);
             }
             return output;
         }
-        public void Tranning(double[] input, double[] desiredOutput, out double error)
+        public unsafe void Tranning(float[] input, float[] desiredOutput, out float error)
         {
             #region compute sum output
-            double[][] nodeSums = new double[HiddenLayerNumber + 1][];
-            double[][] nodeDeltas = new double[HiddenLayerNumber + 1][];
-            double[] output = null;
-            double[][] layerInput = new double[HiddenLayerNumber + 1][];
+            float[][] nodeSums = new float[HiddenLayerNumber + 1][];
+            float[][] nodeDeltas = new float[HiddenLayerNumber + 1][];
+            float[] output = null;
+            float[][] layerInput = new float[HiddenLayerNumber + 1][];
             int perviousLayerDimension = InputDimension;
             for (int layerIndex = 0; layerIndex < HiddenLayerNumber; layerIndex++)
             {
@@ -115,18 +122,22 @@ namespace Game2048.AI.NeuralNetwork
                 argumentInputVector.Add(1);
                 layerInput[layerIndex] = argumentInputVector.ToArray();
                 int nodeCount = weights[layerIndex].Length;
-                output = new double[nodeCount];
-                nodeSums[layerIndex] = new double[nodeCount];
-                nodeDeltas[layerIndex] = new double[nodeCount];
+                output = new float[nodeCount];
+                nodeSums[layerIndex] = new float[nodeCount];
+                nodeDeltas[layerIndex] = new float[nodeCount];
+                fixed(float* nodeSumsPointer = nodeSums[layerIndex])
                 for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
                 {
-                    double sum = weights[layerIndex][nodeIndex][perviousLayerDimension];
-                    for (int weightsIndex = 0; weightsIndex < perviousLayerDimension; weightsIndex++)
+                    fixed(float* weightsPointer = weights[layerIndex][nodeIndex])
                     {
-                        sum += weights[layerIndex][nodeIndex][weightsIndex] * input[weightsIndex];
+                        float sum = weightsPointer[perviousLayerDimension];
+                        for (int weightsIndex = 0; weightsIndex < perviousLayerDimension; weightsIndex++)
+                        {
+                            sum += weightsPointer[weightsIndex] * input[weightsIndex];
+                        }
+                        nodeSumsPointer[nodeIndex] = sum;
+                        output[nodeIndex] = ActivationFunction(sum);
                     }
-                    nodeSums[layerIndex][nodeIndex] = sum;
-                    output[nodeIndex] = ActivationFunction(sum);
                 }
                 perviousLayerDimension = nodeCount;
                 input = output;
@@ -134,18 +145,22 @@ namespace Game2048.AI.NeuralNetwork
             var argumentInputVectorFinal = input.ToList();
             argumentInputVectorFinal.Add(1);
             layerInput[HiddenLayerNumber] = argumentInputVectorFinal.ToArray();
-            output = new double[OutputDimension];
-            nodeSums[HiddenLayerNumber] = new double[OutputDimension];
-            nodeDeltas[HiddenLayerNumber] = new double[OutputDimension];
+            output = new float[OutputDimension];
+            nodeSums[HiddenLayerNumber] = new float[OutputDimension];
+            nodeDeltas[HiddenLayerNumber] = new float[OutputDimension];
             for (int nodeIndex = 0; nodeIndex < OutputDimension; nodeIndex++)
             {
-                double sum = weights[HiddenLayerNumber][nodeIndex][perviousLayerDimension];
-                for (int weightsIndex = 0; weightsIndex < perviousLayerDimension; weightsIndex++)
+                fixed (float* weightsPointer = weights[HiddenLayerNumber][nodeIndex])
                 {
-                    sum += weights[HiddenLayerNumber][nodeIndex][weightsIndex] * input[weightsIndex];
+                    float sum = weightsPointer[perviousLayerDimension];
+                    fixed(float* inputPointer = input)
+                    for (int weightsIndex = 0; weightsIndex < perviousLayerDimension; weightsIndex++)
+                    {
+                        sum += weightsPointer[weightsIndex] * inputPointer[weightsIndex];
+                    }
+                    nodeSums[HiddenLayerNumber][nodeIndex] = sum;
+                    output[nodeIndex] = ActivationFunction(sum);
                 }
-                nodeSums[HiddenLayerNumber][nodeIndex] = sum;
-                output[nodeIndex] = ActivationFunction(sum);
             }
             #endregion
             error = 0;
@@ -154,34 +169,53 @@ namespace Game2048.AI.NeuralNetwork
                 error += (desiredOutput[nodeIndex] - output[nodeIndex]) * (desiredOutput[nodeIndex] - output[nodeIndex]);
                 nodeDeltas[HiddenLayerNumber][nodeIndex] = (desiredOutput[nodeIndex] - output[nodeIndex]) * dActivationFunction(nodeSums[HiddenLayerNumber][nodeIndex]);
             }
-            error = Math.Sqrt(error);
+            error = (float)Math.Sqrt(error);
             for (int layerIndex = HiddenLayerNumber - 1; layerIndex >= 0; layerIndex--)
             {
+                float[] nodeDeltasCache = nodeDeltas[layerIndex];
+                float[] nodeSumsCache = nodeSums[layerIndex];
+                float[][] weightsCache = weights[layerIndex + 1];
                 for (int nodeIndex = 0; nodeIndex < weights[layerIndex].Length; nodeIndex++)
                 {
-                    double deltaSum = 0;
-                    for (int previousLayerNodeIndex = 0; previousLayerNodeIndex < weights[layerIndex + 1].Length; previousLayerNodeIndex++)
+                    float deltaSum = 0;
+                    int weightsLength = weights[layerIndex + 1].Length;
+                    fixed(float* nodeDeltasPointer = nodeDeltas[layerIndex + 1])
                     {
-                        deltaSum += nodeDeltas[layerIndex + 1][previousLayerNodeIndex] * weights[layerIndex + 1][previousLayerNodeIndex][nodeIndex];
+                        for (int previousLayerNodeIndex = 0; previousLayerNodeIndex != weightsLength; previousLayerNodeIndex++)
+                        {
+                            deltaSum += nodeDeltasPointer[previousLayerNodeIndex] * weightsCache[previousLayerNodeIndex][nodeIndex];
+                        }
                     }
-                    nodeDeltas[layerIndex][nodeIndex] = deltaSum * dActivationFunction(nodeSums[layerIndex][nodeIndex]);
+                    nodeDeltasCache[nodeIndex] = deltaSum * dActivationFunction(nodeSumsCache[nodeIndex]);
                 }
             }
 
             for (int nodeIndex = 0; nodeIndex < OutputDimension; nodeIndex++)
             {
-                for (int weightsIndex = 0; weightsIndex < weights[HiddenLayerNumber][nodeIndex].Length; weightsIndex++)
+                int weightLength = weights[HiddenLayerNumber][nodeIndex].Length;
+                fixed (float* weightsPointer = weights[HiddenLayerNumber][nodeIndex])
                 {
-                    weights[HiddenLayerNumber][nodeIndex][weightsIndex] += LearningRate * nodeDeltas[HiddenLayerNumber][nodeIndex] * layerInput[HiddenLayerNumber][weightsIndex];
+                    for (int weightsIndex = 0; weightsIndex < weightLength; weightsIndex++)
+                    {
+                        weightsPointer[weightsIndex] += LearningRate * nodeDeltas[HiddenLayerNumber][nodeIndex] * layerInput[HiddenLayerNumber][weightsIndex];
+                    }
                 }
             }
             for (int layerIndex = HiddenLayerNumber - 1; layerIndex >= 0; layerIndex--)
             {
-                for (int nodeIndex = 0; nodeIndex < weights[layerIndex].Length; nodeIndex++)
+                int nodeLength = weights[layerIndex].Length;
+                for (int nodeIndex = 0; nodeIndex < nodeLength; nodeIndex++)
                 {
-                    for (int weightsIndex = 0; weightsIndex < weights[layerIndex][nodeIndex].Length; weightsIndex++)
+                    int weightLength = weights[layerIndex][nodeIndex].Length;
+                    float nodeDelta = nodeDeltas[layerIndex][nodeIndex];
+
+                    fixed (float* weightsPointer = weights[layerIndex][nodeIndex])
+                    fixed(float* layerInputPointer = layerInput[layerIndex])
                     {
-                        weights[layerIndex][nodeIndex][weightsIndex] += LearningRate * nodeDeltas[layerIndex][nodeIndex] * layerInput[layerIndex][weightsIndex];
+                        for (int weightsIndex = 0; weightsIndex < weightLength; weightsIndex++)
+                        {
+                            weightsPointer[weightsIndex] += LearningRate * nodeDelta * layerInputPointer[weightsIndex];
+                        }
                     }
                 }
             }

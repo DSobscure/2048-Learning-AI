@@ -52,9 +52,9 @@ namespace Game2048.AI.TD_Learning
         {
             rotateBoards = rotateSymmetry;
         }
-        public ulong GetMirrorSymmetricRawBlocks(ulong rawBlocks)
+        public unsafe ulong GetMirrorSymmetricRawBlocks(ulong rawBlocks)
         {
-            ushort[] reversedRowContents = new ushort[4];
+            ushort* reversedRowContents = stackalloc ushort[4];
 
             for (int i = 0; i < 4; i++)
             {

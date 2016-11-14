@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Game2048.AI.TD_Learning
 {
-    public class TupleNetwork
+    public unsafe class TupleNetwork
     {
         public List<TupleFeature> featureSet;
         private ulong[] rotatedBoards;
@@ -18,7 +18,13 @@ namespace Game2048.AI.TD_Learning
             switch (index)
             {
                 case 0:
+                    featureSet.Add(new FourTupleFeature(3));
+                    featureSet.Add(new FourTupleFeature(7));
                     featureSet.Add(new FiveTupleFeature(3));
+                    featureSet.Add(new SixTupleFeature(1));
+                    featureSet.Add(new SixTupleFeature(2));
+                    featureSet.Add(new SixTupleFeature(3));
+                    featureSet.Add(new SixTupleFeature(7));
                     break;
                 case 1:
                     featureSet.Add(new FourTupleFeature(3));
@@ -26,20 +32,6 @@ namespace Game2048.AI.TD_Learning
                     featureSet.Add(new FiveTupleFeature(3));
                     break;
             }
-
-            //featureSet.Add(new FourTupleFeature(3));
-            //featureSet.Add(new FourTupleFeature(7));
-            //featureSet.Add(new FiveTupleFeature(3));
-            //featureSet.Add(new FiveTupleFeature(2));
-            //featureSet.Add(new FiveTupleFeature(7));
-            //featureSet.Add(new FiveTupleFeature(5));
-            //featureSet.Add(new SixTupleFeature(2));
-            //featureSet.Add(new SixTupleFeature(7));
-            //featureSet.Add(new SixTupleFeature(3));
-            //featureSet.Add(new SixTupleFeature(1));
-            //featureSet.Add(new SixTupleFeature(6));
-            //featureSet.Add(new SixTupleFeature(5));
-
             rotatedBoards = new ulong[4];
         }
         public float GetValue(ulong blocks)
@@ -59,12 +51,12 @@ namespace Game2048.AI.TD_Learning
             featureSet.ForEach(x => x.SetSymmetricBoards(rotatedBoards));
             featureSet.ForEach(x => x.UpdateScore(blocks, delta));
         }
-        public void SetLocalRoatatedBoards(ulong rawBlocks)
+        public unsafe void SetLocalRoatatedBoards(ulong rawBlocks)
         {
-            ushort[] rowContents = new ushort[4];
-            ushort[] reversedRowContents = new ushort[4];
-            ushort[] verticalFillpedRowContents = new ushort[4];
-            ushort[] reversedVerticalFlippedRowContents = new ushort[4];
+            ushort* rowContents = stackalloc ushort[4];
+            ushort* reversedRowContents = stackalloc ushort[4];
+            ushort* verticalFillpedRowContents = stackalloc ushort[4];
+            ushort* reversedVerticalFlippedRowContents = stackalloc ushort[4];
 
             for (int i = 0; i < 4; i++)
             {
