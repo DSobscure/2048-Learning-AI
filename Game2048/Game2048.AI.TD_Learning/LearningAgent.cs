@@ -1,19 +1,18 @@
-﻿using Game2048.AI.NeuralNetwork;
-using Game2048.Game.Library;
+﻿using Game2048.Game.Library;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Game2048.AI.TD_Learning
 {
-    public class TD_LearningAgent
+    public class LearningAgent
     {
         public static Action<BitBoard> PrintBoardFunction { get; private set; }
-        private TD_LearningAI ai;
+        private ILearningAI learningAI;
 
-        public TD_LearningAgent(float learningRate, out int loadedCount)
+        public LearningAgent(ILearningAI learningAI)
         {
-            ai = new TD_LearningAI(learningRate, out loadedCount);
+            this.learningAI = learningAI;
         }
 
         public void Training(int trainingTimes, int recordSize, Action<BitBoard> printBoardFunction, bool isUsedGivenRawBoards = false, IEnumerable<ulong> givenRawBoards = null)
@@ -46,7 +45,7 @@ namespace Game2048.AI.TD_Learning
                 Game.Library.Game game;
                 if (isUsedGivenRawBoards)
                 {
-                    game = ai.Train(isUsedGivenRawBoards, rawBoardEnumerator.Current);
+                    game = learningAI.Train(isUsedGivenRawBoards, rawBoardEnumerator.Current);
                     if(!rawBoardEnumerator.MoveNext())
                     {
                         rawBoardEnumerator.Reset();
@@ -55,7 +54,7 @@ namespace Game2048.AI.TD_Learning
                 }
                 else
                 {
-                    game = ai.Train();
+                    game = learningAI.Train();
                 }
                 totalSecond += Convert.ToSingle((DateTime.Now - startTime).TotalSeconds);
                 totalSteps += game.Step;
@@ -160,11 +159,9 @@ namespace Game2048.AI.TD_Learning
                     minBoard = null;
                     maxBoard = null;
                     if (i % 10000 == 0)
-                        ai.SaveTupleNetwork();
+                        learningAI.Save();
                 }
             }
-            //EndgameRawBoardSet.Save();
-            //NormalRawBoardSet.Save();
         }
     }
 }

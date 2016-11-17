@@ -2,6 +2,7 @@
 using Game2048.Game.Library;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 namespace Game2048.AI.GoalBasedLearning
 {
@@ -22,6 +23,8 @@ namespace Game2048.AI.GoalBasedLearning
                     featureSet.Add(new ExtendedFourTupleFeature(7));
                     featureSet.Add(new ExtendedFiveTupleFeature(3));
                     break;
+                default:
+                    throw new System.NotImplementedException();
             }
             rotatedBoards = new ExtendedBitBoard[4];
         }
@@ -34,7 +37,7 @@ namespace Game2048.AI.GoalBasedLearning
             {
                 sum += featureSet[i].GetScore(blocks);
             }
-            return sum;
+            return sum / featureSet.Count;
         }
         public void UpdateValue(ExtendedBitBoard blocks, float delta)
         {

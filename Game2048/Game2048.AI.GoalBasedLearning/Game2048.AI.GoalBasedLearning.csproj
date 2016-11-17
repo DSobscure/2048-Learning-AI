@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BestBoardGenerator.cs" />
     <Compile Include="BoardDifferenceComputer.cs" />
     <Compile Include="ExtendedBitBoard.cs" />
     <Compile Include="ExtendedBitBoardOperationSet.cs" />
@@ -52,6 +53,7 @@
     <Compile Include="ExtendedTupleFeatures\ExtendedFiveTupleFeature.cs" />
     <Compile Include="ExtendedTupleFeatures\ExtendedFourTupleFeature.cs" />
     <Compile Include="ExtendedTupleNetwork.cs" />
+    <Compile Include="GoalBasedTD_LearningAI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

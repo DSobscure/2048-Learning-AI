@@ -26,9 +26,9 @@ namespace Game2048.AI.GoalBasedLearning.ExtendedTupleFeatures
                     //xoxx
                     //xoxx
                     //xxxx
-                    return (int)(((rawBlocks.upperPart >> (56 - 5*4)) & 0x1F00000) | ((rawBlocks.upperPart >> (48 - 5*3)) & 0xF8000) | ((rawBlocks.upperPart >> (40 - 5*2)) & 0x7C00) | ((rawBlocks.upperPart >> (16 - 5*1)) & 0x3E0) | ((rawBlocks.lowerPart >> 16) & 0x1F));
+                    return (int)(((rawBlocks.upperPart >> (56 - 5 * 4)) & 0x1F00000) | ((rawBlocks.upperPart >> (48 - 5 * 3)) & 0xF8000) | ((rawBlocks.upperPart >> (40 - 5 * 2)) & 0x7C00) | ((rawBlocks.upperPart >> (16 - 5 * 1)) & 0x3E0) | ((rawBlocks.lowerPart >> 48) & 0x1F));
                 default:
-                    return 0;
+                    throw new System.NotImplementedException();
             }
         }
     }

@@ -19,7 +19,7 @@
         }
         public static uint ReverseRow(uint rowContent)
         {
-            return (ushort)((rowContent >> 24) | ((rowContent >> 8) & 0x0000FF00) | ((rowContent << 8) & 0x00FF0000) | (rowContent << 24));
+            return ((rowContent >> 24) | ((rowContent >> 8) & 0x0000FF00) | ((rowContent << 8) & 0x00FF0000) | (rowContent << 24));
         }
         public unsafe static ExtendedBitBoard SetRows(uint* rows)
         {
@@ -30,11 +30,25 @@
             result.lowerPart |= rows[3];
             return result;
         }
+        public static ExtendedBitBoard Transpose(ExtendedBitBoard board)
+        {
+            ExtendedBitBoard result = new ExtendedBitBoard { upperPart = 0, lowerPart = 0 };
+            ExtendedBitBoard diagonal4x4block = board & new ExtendedBitBoard { upperPart = 0xFFFF0000FFFF0000, lowerPart = 0x0000FFFF0000FFFF };
+            ExtendedBitBoard topRight4x4block = board & new ExtendedBitBoard { upperPart = 0x0000FFFF0000FFFF, lowerPart = 0 };
+            ExtendedBitBoard downLeft4x4block = board & new ExtendedBitBoard { upperPart = 0, lowerPart = 0xFFFF0000FFFF0000 };
+
+            ExtendedBitBoard swaped = diagonal4x4block | (topRight4x4block >> 48) | (downLeft4x4block << 48);
+
+            ExtendedBitBoard diagonalNet = swaped & new ExtendedBitBoard { upperPart = 0xFF00FF0000FF00FF, lowerPart = 0xFF00FF0000FF00FF };
+            ExtendedBitBoard upperSparse4corner = swaped & new ExtendedBitBoard { upperPart = 0x00FF00FF00000000, lowerPart = 0x00FF00FF00000000 };
+            ExtendedBitBoard lowerSparse4corner = swaped & new ExtendedBitBoard { upperPart = 0x00000000FF00FF00, lowerPart = 0x00000000FF00FF00 };
+
+            result = diagonalNet | (upperSparse4corner >> 24) | (lowerSparse4corner << 24);
+            return result;
+        }
         public unsafe static ExtendedBitBoard SetColumns(uint* columns)
         {
-            ExtendedBitBoard result = new ExtendedBitBoard { lowerPart = 0, upperPart = 0 };
-            throw new System.NotImplementedException();
-            return result;
+            return Transpose(SetRows(columns));
         }
     }
 }

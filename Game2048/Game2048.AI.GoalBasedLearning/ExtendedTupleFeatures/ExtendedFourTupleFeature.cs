@@ -25,7 +25,7 @@ namespace Game2048.AI.GoalBasedLearning.ExtendedTupleFeatures
                     //xoxx
                     //xxxx
                     //xxxx
-                    return (int)(((rawBlocks.upperPart >> (56 - 5*3)) & 0xF8000) | ((rawBlocks.upperPart >> (48 - 5*2)) & 0x7c00) | ((rawBlocks.upperPart >> (40 - 5*1)) & 0x3E0) | ((rawBlocks.upperPart >> 16) & 0x1F));
+                    return (int)(((rawBlocks.upperPart >> (56 - 5 * 3)) & 0xF8000) | ((rawBlocks.upperPart >> (48 - 5*2)) & 0x7c00) | ((rawBlocks.upperPart >> (40 - 5*1)) & 0x3E0) | ((rawBlocks.upperPart >> 16) & 0x1F));
                 case 7:
                     //ooxx
                     //xoox
@@ -33,7 +33,7 @@ namespace Game2048.AI.GoalBasedLearning.ExtendedTupleFeatures
                     //xxxx
                     return (int)(((rawBlocks.upperPart >> (56 - 5 * 3)) & 0xF8000) | ((rawBlocks.upperPart >> (48 - 5 * 2)) & 0x7c00) | ((rawBlocks.upperPart >> (16 - 5 * 1)) & 0x3E0) | ((rawBlocks.upperPart >> 8) & 0x1F));
                 default:
-                    return 0;
+                    throw new System.NotImplementedException();
             }
         }
     }

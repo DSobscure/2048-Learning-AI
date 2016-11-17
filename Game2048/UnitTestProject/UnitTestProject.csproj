@@ -33,6 +33,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -51,6 +52,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BoardDifferenceComputerTest.cs" />
+    <Compile Include="ExtendedBitBoardOperationSetTest.cs" />
+    <Compile Include="ExtendedBitBoardOperatorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

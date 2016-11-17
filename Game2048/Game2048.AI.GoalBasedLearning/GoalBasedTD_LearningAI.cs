@@ -1,20 +1,21 @@
-﻿using Game2048.Game.Library;
+﻿using Game2048.AI.TD_Learning;
+using Game2048.Game.Library;
 using System.Collections.Generic;
 
-namespace Game2048.AI.TD_Learning
+namespace Game2048.AI.GoalBasedLearning
 {
-    public class TD_LearningAI : ILearningAI
+    public class GoalBasedTD_LearningAI : ILearningAI
     {
         private float learningRate;
-        private TupleNetwork tupleNetwork;
+        private ExtendedTupleNetwork tupleNetwork;
         private List<TD_State> td_StateChain;
 
         private List<ulong> rawBlocksRecord;
 
-        public TD_LearningAI(float learningRate, out int loadedCount)
+        public GoalBasedTD_LearningAI(float learningRate, out int loadedCount)
         {
             this.learningRate = learningRate;
-            tupleNetwork = new TupleNetwork("SuperNormalTD", 1);
+            tupleNetwork = new ExtendedTupleNetwork("SuperNormalGoalBasedTD", 1);
             td_StateChain = new List<TD_State>();
             rawBlocksRecord = new List<ulong>();
 
@@ -26,7 +27,7 @@ namespace Game2048.AI.TD_Learning
             UpdateEvaluation();
             td_StateChain.Clear();
             rawBlocksRecord.Clear();
-            
+
             return game;
         }
         public Game.Library.Game PlayGame(bool isUsedRawBoard = false, ulong rawBoard = 0)
@@ -71,7 +72,7 @@ namespace Game2048.AI.TD_Learning
                 ulong rawBoard = boardAfter.RawBlocks;
                 boardAfter.InsertNewTile();
                 if (boardAfter.CanMove)
-                    return (result + tupleNetwork.GetValue(rawBoard));
+                    return (result + tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(rawBoard), rawBoard)));
                 else
                     return -1;
             }
@@ -83,10 +84,6 @@ namespace Game2048.AI.TD_Learning
         public float MutiStepEvaluate(BitBoard board, Direction direction, int maxStep)
         {
             float boardValue = Evaluate(board, direction);
-            if(BitBoard.RawEmptyCountTest(board.RawBlocks) <= 1)
-            {
-                boardValue = (boardValue + Evaluate(board, direction)) / 2f;
-            }
             if (maxStep == 1 || boardValue < 0)
             {
                 return boardValue;
@@ -131,12 +128,12 @@ namespace Game2048.AI.TD_Learning
             }
             for (int i = td_StateChain.Count - 1; i >= 0; i--)
             {
-                float score = bestMoveNodes[i].reward + tupleNetwork.GetValue(bestMoveNodes[i].movedRawBlocks);
+                float score = bestMoveNodes[i].reward + tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(bestMoveNodes[i].movedRawBlocks), bestMoveNodes[i].movedRawBlocks));
                 if (i == td_StateChain.Count - 1 && bestMoveNodes[i].rawBlocks == bestMoveNodes[i].movedRawBlocks)
                 {
                     score = 0;
                 }
-                tupleNetwork.UpdateValue(td_StateChain[i].movedRawBlocks, learningRate * (score - tupleNetwork.GetValue(td_StateChain[i].movedRawBlocks)));
+                tupleNetwork.UpdateValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(td_StateChain[i].movedRawBlocks), td_StateChain[i].movedRawBlocks), learningRate * (score - tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(td_StateChain[i].movedRawBlocks), td_StateChain[i].movedRawBlocks))));
             }
         }
 

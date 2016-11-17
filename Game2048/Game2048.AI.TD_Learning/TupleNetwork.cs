@@ -27,8 +27,8 @@ namespace Game2048.AI.TD_Learning
                     featureSet.Add(new SixTupleFeature(7));
                     break;
                 case 1:
-                    featureSet.Add(new FourTupleFeature(3));
-                    featureSet.Add(new FourTupleFeature(7));
+                    //featureSet.Add(new FourTupleFeature(3));
+                    //featureSet.Add(new FourTupleFeature(7));
                     featureSet.Add(new FiveTupleFeature(3));
                     break;
             }
