@@ -7,12 +7,9 @@ namespace Game2048.AI.GoalBasedLearning
     {
         public static ulong BasicLayeredTile(ulong rawBoard)
         {
+            //byte[,] board = new byte[4, 4];
             ulong result = 0;
-            ulong maxtile = (ulong)BitBoard.RawMaxTileTest(rawBoard);
-            for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
-            {
-                result |= (ulong)1 << shiftBitCount;
-            }
+            //ulong maxtile = (ulong)BitBoard.RawMaxTileTest(rawBoard);
 
             return result;
         }

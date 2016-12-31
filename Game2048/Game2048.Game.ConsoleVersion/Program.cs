@@ -1,7 +1,4 @@
 ﻿using Game2048.AI.TD_Learning;
-using Game2048.AI.TD_Learning.TupleFeatures;
-using Game2048.AI.GoalBasedLearning;
-using Game2048.AI.GoalBasedLearning.ExtendedTupleFeatures;
 using System;
 
 namespace Game2048.Game.ConsoleVersion
@@ -11,10 +8,16 @@ namespace Game2048.Game.ConsoleVersion
         static void Main(string[] args)
         {
             int loadedCount;
-            //LearningAgent agent = new LearningAgent(new TD_LearningAI(0.0025f, out loadedCount));
-            LearningAgent agent = new LearningAgent(new GoalBasedTD_LearningAI(0.0025f, out loadedCount));
+            LearningAgent agent = new LearningAgent(new RewardLearningAI(
+                learningRate: 0.0001f,
+                rewardPerceptronLearningRate: 0.1f,
+                activationFunction: (sum) => Math.Max(sum, 0),
+                dActivationFunction: (sum) => (sum > 0) ? 1 : 0,
+                loadedCount: out loadedCount));
+            //LearningAgent agent = new LearningAgent(new StepEvaluationLearningAI(0.00005f, out loadedCount));
+            //LearningAgent agent = new LearningAgent(new GoalBasedTD_LearningAI(0.0025f, out loadedCount));
             Console.WriteLine("Loaded {0} TupleFeatures", loadedCount);
-            agent.Training(200000, 1000, ConsoleGameEnvironment.PrintBoard);
+            agent.Training(10000000, 1000, ConsoleGameEnvironment.PrintBoard);
 
             Console.Read();
         }

@@ -21,7 +21,7 @@ namespace Game2048.AI.GoalBasedLearning
 
             tupleNetwork.Load(out loadedCount);
         }
-        public Game.Library.Game Train(bool isUsedRawBoard = false, ulong rawBoard = 0)
+        public Game.Library.Game Train(float previousAverageScore = 0, float previousScoreDeviation = 0, bool isUsedRawBoard = false, ulong rawBoard = 0)
         {
             Game.Library.Game game = PlayGame(isUsedRawBoard, rawBoard);
             UpdateEvaluation();
@@ -71,8 +71,9 @@ namespace Game2048.AI.GoalBasedLearning
                 BitBoard boardAfter = board.Move(direction, out result);
                 ulong rawBoard = boardAfter.RawBlocks;
                 boardAfter.InsertNewTile();
+                float similarity = BoardDifferenceComputer.Similarity(BestBoardGenerator.BasicLayeredTile(rawBoard), rawBoard);
                 if (boardAfter.CanMove)
-                    return (result + tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(rawBoard), rawBoard)));
+                    return similarity + tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(rawBoard), rawBoard));
                 else
                     return -1;
             }
@@ -128,7 +129,8 @@ namespace Game2048.AI.GoalBasedLearning
             }
             for (int i = td_StateChain.Count - 1; i >= 0; i--)
             {
-                float score = bestMoveNodes[i].reward + tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(bestMoveNodes[i].movedRawBlocks), bestMoveNodes[i].movedRawBlocks));
+                float similarity = BoardDifferenceComputer.Similarity(BestBoardGenerator.BasicLayeredTile(bestMoveNodes[i].movedRawBlocks), bestMoveNodes[i].movedRawBlocks);
+                float score = similarity + tupleNetwork.GetValue(BoardDifferenceComputer.Compute(BestBoardGenerator.BasicLayeredTile(bestMoveNodes[i].movedRawBlocks), bestMoveNodes[i].movedRawBlocks));
                 if (i == td_StateChain.Count - 1 && bestMoveNodes[i].rawBlocks == bestMoveNodes[i].movedRawBlocks)
                 {
                     score = 0;

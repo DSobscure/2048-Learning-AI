@@ -37,5 +37,17 @@
             }
             return difference;
         }
+        public static float Similarity(ulong desiredRawBlocks, ulong comparedRawBlocks)
+        {
+            return 3600;
+            float differenceSqureSum = 3600;
+            for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
+            {
+                byte desiredTile = (byte)((desiredRawBlocks >> shiftBitCount) & 0xf);
+                byte comparedTile = (byte)((comparedRawBlocks >> shiftBitCount) & 0xf);
+                differenceSqureSum -= (desiredTile - comparedTile) * (desiredTile - comparedTile);
+            }
+            return differenceSqureSum;
+        }
     }
 }

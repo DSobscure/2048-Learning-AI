@@ -37,7 +37,7 @@ namespace Game2048.AI.GoalBasedLearning
             {
                 sum += featureSet[i].GetScore(blocks);
             }
-            return sum / featureSet.Count;
+            return sum;
         }
         public void UpdateValue(ExtendedBitBoard blocks, float delta)
         {

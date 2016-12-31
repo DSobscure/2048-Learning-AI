@@ -35,6 +35,9 @@ namespace Game2048.AI.TD_Learning
             int totalSteps = 0;
             IEnumerator<ulong> rawBoardEnumerator = null;
 
+            float previousAverageScore = 0;
+            float previousScoreDeviation = 0;
+
             if (isUsedGivenRawBoards)
             {
                 rawBoardEnumerator = givenRawBoards.GetEnumerator();
@@ -45,7 +48,7 @@ namespace Game2048.AI.TD_Learning
                 Game.Library.Game game;
                 if (isUsedGivenRawBoards)
                 {
-                    game = learningAI.Train(isUsedGivenRawBoards, rawBoardEnumerator.Current);
+                    game = learningAI.Train(previousAverageScore, previousScoreDeviation, isUsedGivenRawBoards, rawBoardEnumerator.Current);
                     if(!rawBoardEnumerator.MoveNext())
                     {
                         rawBoardEnumerator.Reset();
@@ -122,6 +125,9 @@ namespace Game2048.AI.TD_Learning
                 {
                     float totalScore = scores.Sum();
                     double deviation = Math.Sqrt(scores.Sum(x => Math.Pow(x - totalScore / recordSize, 2)) / recordSize);
+
+                    previousAverageScore = totalScore / recordSize;
+                    previousScoreDeviation = (float)deviation;
 
                     Console.WriteLine("Round: {0} AvgScore: {1}", i, totalScore / recordSize);
                     Console.WriteLine("Max Score: {0}", scores.Max());

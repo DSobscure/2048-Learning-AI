@@ -15,21 +15,15 @@ namespace Game2048.AI.NeuralNetwork
         [MessagePackMember(id: 3, Name = "weights")]
         private float[][][] weights;
         [MessagePackMember(id: 4, Name = "LearningRate")]
-        public float LearningRate { get; protected set; }
+        public float LearningRate { get; set; }
         public Func<float, float> ActivationFunction { get; protected set; }
         public Func<float, float> dActivationFunction { get; protected set; }
 
         [MessagePackDeserializationConstructor]
         public MultiLayerPerceptron()
         {
-            ActivationFunction = (input) =>
-            {
-                return 1 / (float)(1.0 + Math.Exp(-input));
-            };
-            dActivationFunction = (input) =>
-            {
-                return ActivationFunction(input) * (1 - ActivationFunction(input));
-            };
+            ActivationFunction = (sum) => Math.Max(sum, 0);
+            dActivationFunction = (sum) => (sum > 0) ? 1 : 0;
         }
         public MultiLayerPerceptron(int inputDimension, int outputDimension, int hiddenLayerNumber, int[] hiddenLayerNodeNumber, float learningRate, Func<float, float> activationFunction, Func<float, float> dActivationFunction)
         {
