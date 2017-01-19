@@ -1,5 +1,4 @@
-﻿using Game2048.Game.Library;
-using MsgPack.Serialization;
+﻿using MsgPack.Serialization;
 using System;
 
 namespace Game2048.AI.TD_Learning
@@ -10,33 +9,16 @@ namespace Game2048.AI.TD_Learning
         protected float[] tuples;
         public void UpdateScore(ulong rawBlocks, float delta)
         {
-            for (int i = 0; i < 4; i++)
-            {
-                int index = GetIndex(rotateBoards[i]);
-                int symmetricIndex = GetIndex(GetMirrorSymmetricRawBlocks(rotateBoards[i]));
-
-                tuples[index] += delta;
-                if (symmetricIndex != index)
-                    tuples[symmetricIndex] += delta;
-            }
+            int index = GetIndex(rawBlocks);
+            tuples[index] += delta;
         }
         public float GetScore(ulong blocks)
         {
-            float sum = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                int index = GetIndex(rotateBoards[i]);
-                int symmetricIndex = GetIndex(GetMirrorSymmetricRawBlocks(rotateBoards[i]));
-
-                sum += tuples[index];
-                if (symmetricIndex != index)
-                    sum += tuples[symmetricIndex];
-            }
-            return sum;
+            int index = GetIndex(blocks);
+            return tuples[index];
         }
         public abstract int GetIndex(ulong blocks);
 
-        public ulong[] rotateBoards;
         [MessagePackDeserializationConstructor]
         protected TupleFeature(float[] tuples)
         {
@@ -45,22 +27,6 @@ namespace Game2048.AI.TD_Learning
         protected TupleFeature(int tupleNumber)
         {
             tuples = new float[(int)Math.Pow(16, tupleNumber)];
-        }
-        
-        public void SetSymmetricBoards(ulong[] rotateSymmetry)
-        {
-            rotateBoards = rotateSymmetry;
-        }
-        public unsafe ulong GetMirrorSymmetricRawBlocks(ulong rawBlocks)
-        {
-            ushort* reversedRowContents = stackalloc ushort[4];
-
-            for (int i = 0; i < 4; i++)
-            {
-                reversedRowContents[i] = BitBoardOperationSet.ReverseRow(BitBoardOperationSet.GetRow(rawBlocks, i));
-            }
-
-            return BitBoardOperationSet.SetRows(reversedRowContents); ;
         }
     }
 }

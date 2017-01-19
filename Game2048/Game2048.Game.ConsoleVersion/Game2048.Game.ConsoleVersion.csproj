@@ -90,10 +90,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Game2048.AI.GoalBasedLearning\Game2048.AI.GoalBasedLearning.csproj">
-      <Project>{15589d36-71d0-42a8-99a7-cd42c77830c8}</Project>
-      <Name>Game2048.AI.GoalBasedLearning</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Game2048.AI.NeuralNetwork\Game2048.AI.NeuralNetwork.csproj">
       <Project>{0507eab8-579f-4bb3-83cc-79c7a5257fd5}</Project>
       <Name>Game2048.AI.NeuralNetwork</Name>

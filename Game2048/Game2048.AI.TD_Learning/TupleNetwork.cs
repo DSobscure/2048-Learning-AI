@@ -8,7 +8,6 @@ namespace Game2048.AI.TD_Learning
     public unsafe class TupleNetwork
     {
         public List<TupleFeature> featureSet;
-        private ulong[] rotatedBoards;
         public string NetworkName { get; private set; }
 
         public TupleNetwork(string networkName, int index)
@@ -18,58 +17,43 @@ namespace Game2048.AI.TD_Learning
             switch (index)
             {
                 case 0:
-                    featureSet.Add(new FourTupleFeature(3));
-                    featureSet.Add(new FourTupleFeature(7));
-                    featureSet.Add(new FiveTupleFeature(3));
                     featureSet.Add(new SixTupleFeature(1));
-                    featureSet.Add(new SixTupleFeature(2));
-                    featureSet.Add(new SixTupleFeature(3));
-                    featureSet.Add(new SixTupleFeature(7));
+                    featureSet.Add(new SixTupleFeature(101));
+                    featureSet.Add(new SixTupleFeature(502));
+                    featureSet.Add(new SixTupleFeature(602));
                     break;
                 case 1:
-                    //featureSet.Add(new FourTupleFeature(3));
-                    //featureSet.Add(new FourTupleFeature(7));
-                    featureSet.Add(new FiveTupleFeature(3));
+                    featureSet.Add(new FourTupleFeature(1));
+                    featureSet.Add(new FourTupleFeature(2));
+                    featureSet.Add(new FourTupleFeature(3));
+                    featureSet.Add(new FourTupleFeature(4));
+                    featureSet.Add(new FourTupleFeature(5));
+                    featureSet.Add(new FourTupleFeature(6));
+                    featureSet.Add(new FourTupleFeature(7));
                     break;
             }
-            rotatedBoards = new ulong[4];
         }
-        public float GetValue(ulong blocks)
+        public float GetValue(ulong[] symmetricBoards)
         {
-            SetLocalRoatatedBoards(blocks);
-            featureSet.ForEach(x => x.SetSymmetricBoards(rotatedBoards));
             float sum = 0;
             for (int i = 0; i < featureSet.Count; i++)
             {
-                sum += featureSet[i].GetScore(blocks);
+                for(int j = 0; j < 8; j++)
+                {
+                    sum += featureSet[i].GetScore(symmetricBoards[j]);
+                }
             }
             return sum;
         }
-        public void UpdateValue(ulong blocks, float delta)
+        public void UpdateValue(ulong[] symmetricBoards, float delta)
         {
-            SetLocalRoatatedBoards(blocks);
-            featureSet.ForEach(x => x.SetSymmetricBoards(rotatedBoards));
-            featureSet.ForEach(x => x.UpdateScore(blocks, delta));
-        }
-        public unsafe void SetLocalRoatatedBoards(ulong rawBlocks)
-        {
-            ushort* rowContents = stackalloc ushort[4];
-            ushort* reversedRowContents = stackalloc ushort[4];
-            ushort* verticalFillpedRowContents = stackalloc ushort[4];
-            ushort* reversedVerticalFlippedRowContents = stackalloc ushort[4];
-
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < featureSet.Count; i++)
             {
-                rowContents[i] = BitBoardOperationSet.GetRow(rawBlocks, i);
-                reversedRowContents[i] = BitBoardOperationSet.ReverseRow(rowContents[i]);
-                verticalFillpedRowContents[3 - i] = rowContents[i];
-                reversedVerticalFlippedRowContents[3 - i] = reversedRowContents[i];
+                for (int j = 0; j < 8; j++)
+                {
+                    featureSet[i].UpdateScore(symmetricBoards[j], delta);
+                }
             }
-
-            rotatedBoards[0] = rawBlocks;//origin board
-            rotatedBoards[1] = BitBoardOperationSet.SetColumns(reversedRowContents);//clockwise rotate 270
-            rotatedBoards[2] = BitBoardOperationSet.SetColumns(verticalFillpedRowContents);//clockwise rotate 90
-            rotatedBoards[3] = BitBoardOperationSet.SetRows(reversedVerticalFlippedRowContents);//clockwise rotate 180
         }
         public void Save()
         {
@@ -111,6 +95,18 @@ namespace Game2048.AI.TD_Learning
                     loadedCount--;
                 }
             }
+        }
+
+        public unsafe ulong GetMirrorSymmetricRawBlocks(ulong rawBlocks)
+        {
+            ushort* reversedRowContents = stackalloc ushort[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                reversedRowContents[i] = BitBoardOperationSet.ReverseRow(BitBoardOperationSet.GetRow(rawBlocks, i));
+            }
+
+            return BitBoardOperationSet.SetRows(reversedRowContents); ;
         }
     }
 }

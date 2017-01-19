@@ -5,7 +5,7 @@ namespace Game2048.AI.TD_Learning
     public struct BestMoveNode
     {
         public Direction bestMove;
-        public int reward;
+        public float reward;
         public ulong rawBlocks;
         public ulong movedRawBlocks;
     };

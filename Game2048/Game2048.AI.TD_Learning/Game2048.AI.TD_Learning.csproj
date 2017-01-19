@@ -84,11 +84,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BestMoveNode.cs" />
-    <Compile Include="ILearningAI.cs" />
+    <Compile Include="GameRecord.cs" />
+    <Compile Include="LearningAI.cs" />
+    <Compile Include="MLP_RewardTrained_RewardLearningAI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RewardLearningAI.cs" />
-    <Compile Include="StepEvaluationLearningAI.cs" />
-    <Compile Include="TupleNetworkSituationClassifier.cs" />
+    <Compile Include="TranningMode.cs" />
     <Compile Include="LearningAgent.cs" />
     <Compile Include="TD_LearningAI.cs" />
     <Compile Include="TD_State.cs" />

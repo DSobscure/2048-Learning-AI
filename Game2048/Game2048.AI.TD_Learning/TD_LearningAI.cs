@@ -1,68 +1,19 @@
 ﻿using Game2048.Game.Library;
-using System.Collections.Generic;
+using System;
 
 namespace Game2048.AI.TD_Learning
 {
-    public class TD_LearningAI : ILearningAI
+    public class TD_LearningAI : LearningAI
     {
-        private float learningRate;
         private TupleNetwork tupleNetwork;
-        private List<TD_State> td_StateChain;
 
-        private List<ulong> rawBlocksRecord;
-
-        public TD_LearningAI(float learningRate, out int loadedCount)
+        public TD_LearningAI(float learningRate, out int loadedCount, int tupleNetworkIndex) : base(learningRate, tupleNetworkIndex)
         {
-            this.learningRate = learningRate;
-            tupleNetwork = new TupleNetwork("SuperNormalTD", 0);
-            td_StateChain = new List<TD_State>();
-            rawBlocksRecord = new List<ulong>();
-
+            tupleNetwork = new TupleNetwork("SuperNormalTD", tupleNetworkIndex);
             tupleNetwork.Load(out loadedCount);
         }
-        public Game.Library.Game Train(float previousAverageScore = 0, float previousScoreDeviation = 0, bool isUsedRawBoard = false, ulong rawBoard = 0)
-        {
-            Game.Library.Game game = PlayGame(isUsedRawBoard, rawBoard);
-            UpdateEvaluation();
-            td_StateChain.Clear();
-            rawBlocksRecord.Clear();
-            
-            return game;
-        }
-        public Game.Library.Game PlayGame(bool isUsedRawBoard = false, ulong rawBoard = 0)
-        {
-            Game.Library.Game game = (isUsedRawBoard) ? new Game.Library.Game(rawBoard) : new Game.Library.Game();
-            while (!game.IsEnd)
-            {
-                ulong movedRawBlocks = game.Move(GetBestMove(game.Board, 1));
-                ulong blocksAfterAdded = game.Board.RawBlocks;
-                TD_State state = new TD_State
-                {
-                    movedRawBlocks = movedRawBlocks,
-                    insertedRawBlocks = blocksAfterAdded
-                };
-                td_StateChain.Add(state);
-                rawBlocksRecord.Add(blocksAfterAdded);
-            }
-            return game;
-        }
-        public Direction GetBestMove(BitBoard board, int initialStep = 1)
-        {
-            Direction nextDirection = Direction.No;
-            float maxScore = float.MinValue;
 
-            for (Direction direction = Direction.Up; direction <= Direction.Right; direction++)
-            {
-                float result = MutiStepEvaluate(board, direction, initialStep);
-                if (result > maxScore && board.MoveCheck(direction))
-                {
-                    nextDirection = direction;
-                    maxScore = result;
-                }
-            }
-            return nextDirection;
-        }
-        public float Evaluate(BitBoard board, Direction direction)
+        protected override float Evaluate(BitBoard board, Direction direction)
         {
             if (board.MoveCheck(direction))
             {
@@ -71,7 +22,7 @@ namespace Game2048.AI.TD_Learning
                 ulong rawBoard = boardAfter.RawBlocks;
                 boardAfter.InsertNewTile();
                 if (boardAfter.CanMove)
-                    return (BitBoard.MaxTileTest(rawBoard) + tupleNetwork.GetValue(rawBoard));
+                    return (result + tupleNetwork.GetValue(BitBoard.GetSymmetricBoards(rawBoard)));
                 else
                     return -1;
             }
@@ -80,41 +31,7 @@ namespace Game2048.AI.TD_Learning
                 return 0;
             }
         }
-        public float MutiStepEvaluate(BitBoard board, Direction direction, int maxStep)
-        {
-            float boardValue = Evaluate(board, direction);
-            if(BitBoard.RawEmptyCountTest(board.RawBlocks) <= 1)
-            {
-                boardValue = (boardValue + Evaluate(board, direction)) / 2f;
-            }
-            if (maxStep == 1 || boardValue < 0)
-            {
-                return boardValue;
-            }
-            else
-            {
-                int reward;
-                BitBoard searchingBoard = board.Move(direction, out reward);
-                searchingBoard.InsertNewTile();
-                float maxScore = 0;
-
-                bool isFirst = true;
-                for (Direction searchingDirection = Direction.Up; searchingDirection <= Direction.Right; searchingDirection++)
-                {
-                    float result = MutiStepEvaluate(searchingBoard, searchingDirection, maxStep - 1);
-                    if (isFirst && searchingBoard.MoveCheck(searchingDirection))
-                    {
-                        maxScore = result;
-                        isFirst = false;
-                    }
-                    else if (result > maxScore && searchingBoard.MoveCheck(searchingDirection))
-                    {
-                        maxScore = result;
-                    }
-                }
-                return boardValue + maxScore;
-            }
-        }
+        
         public void UpdateEvaluation()
         {
             BestMoveNode[] bestMoveNodes = new BestMoveNode[td_StateChain.Count];
@@ -131,18 +48,35 @@ namespace Game2048.AI.TD_Learning
             }
             for (int i = td_StateChain.Count - 1; i >= 0; i--)
             {
-                float score = BitBoard.MaxTileTest(bestMoveNodes[i].movedRawBlocks) + tupleNetwork.GetValue(bestMoveNodes[i].movedRawBlocks);
+                ulong[] symmetricBoards = BitBoard.GetSymmetricBoards(bestMoveNodes[i].movedRawBlocks);
+                ulong[] symmetricBoards_td = BitBoard.GetSymmetricBoards(td_StateChain[i].movedRawBlocks);
+                float score = bestMoveNodes[i].reward + tupleNetwork.GetValue(symmetricBoards);
                 if (i == td_StateChain.Count - 1 && bestMoveNodes[i].rawBlocks == bestMoveNodes[i].movedRawBlocks)
                 {
                     score = 0;
                 }
-                tupleNetwork.UpdateValue(td_StateChain[i].movedRawBlocks, learningRate * (score - tupleNetwork.GetValue(td_StateChain[i].movedRawBlocks)));
+                tupleNetwork.UpdateValue(symmetricBoards_td, learningRate * (score - tupleNetwork.GetValue(symmetricBoards_td)));
             }
         }
 
-        public void Save()
+        public override void Save()
         {
             tupleNetwork.Save();
+        }
+
+        public override Game.Library.Game Train(bool isUsedRawBoard = false, ulong rawBoard = 0)
+        {
+            Game.Library.Game game = PlayGame(isUsedRawBoard, rawBoard);
+            UpdateEvaluation();
+            td_StateChain.Clear();
+            rawBlocksRecord.Clear();
+
+            return game;
+        }
+
+        public override Game.Library.Game RewardTrain(bool isTrainedByScore, float previousAverage = 0, float previousDeviation = 0, bool isUsedRawBoard = false, ulong rawBoard = 0)
+        {
+            throw new NotImplementedException();
         }
     }
 }

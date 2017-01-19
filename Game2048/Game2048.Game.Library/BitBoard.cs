@@ -3,7 +3,7 @@ using System;
 
 namespace Game2048.Game.Library
 {
-    public class BitBoard
+    public unsafe class BitBoard
     {
         private static Random newTileRandomGenerator = new Random((int)DateTime.Now.ToBinary());
         public static int RawEmptyCountTest(ulong rawBlocks)
@@ -55,6 +55,34 @@ namespace Game2048.Game.Library
                 result |= ((ulong)inverseNumber) << shiftBitCount;
             }
             return result;
+        }
+        public unsafe static ulong[] GetSymmetricBoards(ulong rawBlocks)
+        {
+            ulong[] symmetricBoards = new ulong[8];
+
+            ushort* rowContents = stackalloc ushort[4];
+            ushort* reversedRowContents = stackalloc ushort[4];
+            ushort* verticalFillpedRowContents = stackalloc ushort[4];
+            ushort* reversedVerticalFlippedRowContents = stackalloc ushort[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                rowContents[i] = BitBoardOperationSet.GetRow(rawBlocks, i);
+                reversedRowContents[i] = BitBoardOperationSet.ReverseRow(rowContents[i]);
+                verticalFillpedRowContents[3 - i] = rowContents[i];
+                reversedVerticalFlippedRowContents[3 - i] = reversedRowContents[i];
+            }
+
+            symmetricBoards[0] = rawBlocks;//origin board
+            symmetricBoards[1] = BitBoardOperationSet.SetColumns(reversedRowContents);//clockwise rotate 270
+            symmetricBoards[2] = BitBoardOperationSet.SetColumns(verticalFillpedRowContents);//clockwise rotate 90
+            symmetricBoards[3] = BitBoardOperationSet.SetRows(reversedVerticalFlippedRowContents);//clockwise rotate 180
+            symmetricBoards[4] = BitBoardOperationSet.SetColumns(reversedRowContents);
+            symmetricBoards[5] = BitBoardOperationSet.SetRows(reversedRowContents);
+            symmetricBoards[6] = BitBoardOperationSet.SetRows(verticalFillpedRowContents);
+            symmetricBoards[7] = BitBoardOperationSet.SetColumns(reversedVerticalFlippedRowContents);
+
+            return symmetricBoards;
         }
 
         private ulong rawBlocks;
@@ -142,9 +170,9 @@ namespace Game2048.Game.Library
             int emptyCountCache = EmptyCount;
             if (emptyCountCache > 0)
             {
-                ulong tile = (newTileRandomGenerator.Next(0, 9) == 0) ? 2UL : 1UL;
+                ulong tile = (newTileRandomGenerator.Next(0, 10) == 0) ? 2UL : 1UL;
 
-                int targetIndex = newTileRandomGenerator.Next(0, emptyCountCache - 1);
+                int targetIndex = newTileRandomGenerator.Next(0, emptyCountCache);
                 for (int shiftBitCount = 0; shiftBitCount < 64; shiftBitCount += 4)
                 {
                     if (((rawBlocks >> shiftBitCount) & 0xf) == 0)

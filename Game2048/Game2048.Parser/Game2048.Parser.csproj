@@ -4,15 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{15589D36-71D0-42A8-99A7-CD42C77830C8}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{E76C1DF3-7833-4552-8677-1FC9A6D124F0}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Game2048.AI.GoalBasedLearning</RootNamespace>
-    <AssemblyName>Game2048.AI.GoalBasedLearning</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <RootNamespace>Game2048.Parser</RootNamespace>
+    <AssemblyName>Game2048.Parser</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,19 +24,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MsgPack, Version=0.8.0.0, Culture=neutral, PublicKeyToken=a2625990d5dc0167, processorArchitecture=MSIL">
-      <HintPath>..\packages\MsgPack.Cli.0.8.0\lib\net45\MsgPack.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,17 +43,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BestBoardGenerator.cs" />
-    <Compile Include="BoardDifferenceComputer.cs" />
-    <Compile Include="ExtendedBitBoard.cs" />
-    <Compile Include="ExtendedBitBoardOperationSet.cs" />
-    <Compile Include="ExtendedTupleFeature.cs" />
-    <Compile Include="ExtendedTupleFeatures\ExtendedFiveTupleFeature.cs" />
-    <Compile Include="ExtendedTupleFeatures\ExtendedFourTupleFeature.cs" />
-    <Compile Include="ExtendedTupleNetwork.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Game2048.AI.NeuralNetwork\Game2048.AI.NeuralNetwork.csproj">
+      <Project>{0507eab8-579f-4bb3-83cc-79c7a5257fd5}</Project>
+      <Name>Game2048.AI.NeuralNetwork</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Game2048.AI.TD_Learning\Game2048.AI.TD_Learning.csproj">
       <Project>{b2b9485c-062a-4ad6-a430-e4d6d41c4021}</Project>
       <Name>Game2048.AI.TD_Learning</Name>
@@ -64,9 +62,6 @@
       <Project>{9466b218-6950-4f3b-8e1d-b314c1e49a70}</Project>
       <Name>Game2048.Game.Library</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
