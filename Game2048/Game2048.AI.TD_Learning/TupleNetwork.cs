@@ -28,8 +28,13 @@ namespace Game2048.AI.TD_Learning
                     featureSet.Add(new FourTupleFeature(3));
                     featureSet.Add(new FourTupleFeature(4));
                     featureSet.Add(new FourTupleFeature(5));
+                    break;
+                case 2:
                     featureSet.Add(new FourTupleFeature(6));
                     featureSet.Add(new FourTupleFeature(7));
+                    featureSet.Add(new FourTupleFeature(8));
+                    featureSet.Add(new FourTupleFeature(9));
+                    featureSet.Add(new FourTupleFeature(10));
                     break;
             }
         }

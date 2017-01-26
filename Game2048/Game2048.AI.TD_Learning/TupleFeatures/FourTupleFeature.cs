@@ -7,7 +7,7 @@ namespace Game2048.AI.TD_Learning.TupleFeatures
         [MessagePackMember(id: 1, Name = "index")]
         int index;
 
-        [MessagePackDeserializationConstructor]
+        public FourTupleFeature() { }
         public FourTupleFeature(float[] tuples, int index) : base(tuples)
         {
             this.index = index;
@@ -21,42 +21,60 @@ namespace Game2048.AI.TD_Learning.TupleFeatures
             switch (index)
             {
                 case 1:
-                    //oooo
+                    //ooxx
+                    //xoox
                     //xxxx
                     //xxxx
-                    //xxxx
-                    return (int)((blocks >> 48) & 0xFFFF);
+                    return (int)(((blocks >> 48) & 0xFF00) | ((blocks >> 36) & 0xFF));
                 case 2:
+                    //xoox
+                    //xxoo
+                    //xxxx
+                    //xxxx
+                    return (int)(((blocks >> 44) & 0xFF00) | ((blocks >> 32) & 0xFF));
+                case 3:
+                    //xxxx
+                    //ooxx
+                    //oxxx
+                    //oxxx
+                    return (int)(((blocks >> 32) & 0xFF00) | ((blocks >> 24) & 0xF0) | ((blocks >> 12) & 0xF));
+                case 4:
+                    //xxxx
+                    //xxox
+                    //xooo
+                    //xxxx
+                    return (int)(((blocks >> 24) & 0xF000) | ((blocks >> 12) & 0xFFF));
+                case 5:
+                    //xxxx
+                    //xxxx
+                    //xxox
+                    //xooo
+                    return (int)(((blocks >> 8) & 0xF000) | (blocks & 0xFFF));
+                case 6:
+                    //oooo
+                    //xxxx
+                    //xxxx
+                    //xxxx
+                    return (int)(((blocks >> 48) & 0xFFFF));
+                case 7:
                     //xxxx
                     //oooo
                     //xxxx
                     //xxxx
-                    return (int)((blocks >> 32) & 0xFFFF);
-                case 3:
-                    //oxxx
-                    //oxxx
-                    //oxxx
-                    //oxxx
-                    return (int)(((blocks >> 48) & 0xF000) | ((blocks >> 36) & 0xF00) | ((blocks >> 24) & 0xF0) | ((blocks >> 12) & 0xF));
-                case 4:
-                    //xoxx
-                    //xoxx
-                    //xoxx
-                    //xoxx
-                    return (int)(((blocks >> 44) & 0xF000) | ((blocks >> 32) & 0xF00) | ((blocks >> 20) & 0xF0) | ((blocks >> 8) & 0xF));
-                case 5:
+                    return (int)(((blocks >> 32) & 0xFFFF));
+                case 8:
                     //ooxx
                     //ooxx
                     //xxxx
                     //xxxx
                     return (int)(((blocks >> 48) & 0xFF00) | ((blocks >> 40) & 0xFF));
-                case 6:
+                case 9:
                     //xoox
                     //xoox
                     //xxxx
                     //xxxx
                     return (int)(((blocks >> 44) & 0xFF00) | ((blocks >> 36) & 0xFF));
-                case 7:
+                case 10:
                     //xxxx
                     //xoox
                     //xoox

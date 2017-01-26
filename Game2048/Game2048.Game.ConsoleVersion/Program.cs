@@ -1,4 +1,5 @@
 ﻿using Game2048.AI.TD_Learning;
+using Game2048.AI.NeuralNetwork;
 using System;
 
 namespace Game2048.Game.ConsoleVersion
@@ -28,8 +29,8 @@ namespace Game2048.Game.ConsoleVersion
                     agent = new LearningAgent(new MLP_RewardTrained_RewardLearningAI(
                         learningRate: 0.0025f,
                         rewardPerceptronLearningRate: 0.01f,
-                        activationFunction: (sum) => Math.Max(sum, 0),
-                        dActivationFunction: (sum) => (sum > 0) ? 1 : 0,
+                        activationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)),
+                        dActivationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)) * (1 - 1.0f / (1.0f + (float)Math.Exp(-sum))),
                         loadedCount: out loadedCount,
                         tupleNetworkIndex: tupleNetworkIndex));
                     break;
@@ -37,8 +38,22 @@ namespace Game2048.Game.ConsoleVersion
                     agent = new LearningAgent(new MLP_RewardTrained_RewardLearningAI(
                         learningRate: 0.0025f,
                         rewardPerceptronLearningRate: 0.01f,
-                        activationFunction: (sum) => Math.Max(sum, 0),
-                        dActivationFunction: (sum) => (sum > 0) ? 1 : 0,
+                        activationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)),
+                        dActivationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)) * (1 - 1.0f / (1.0f + (float)Math.Exp(-sum))),
+                        loadedCount: out loadedCount,
+                        tupleNetworkIndex: tupleNetworkIndex));
+                    break;
+                case "tn score":
+                    agent = new LearningAgent(new TN_RewardTrained_RewardLearningAI(
+                        learningRate: 0.0025f,
+                        rewardLearningRate: 0.01f,
+                        loadedCount: out loadedCount,
+                        tupleNetworkIndex: tupleNetworkIndex));
+                    break;
+                case "tn step":
+                    agent = new LearningAgent(new TN_RewardTrained_RewardLearningAI(
+                        learningRate: 0.0025f,
+                        rewardLearningRate: 0.01f,
                         loadedCount: out loadedCount,
                         tupleNetworkIndex: tupleNetworkIndex));
                     break;
@@ -61,10 +76,10 @@ namespace Game2048.Game.ConsoleVersion
                 case "mlp step reward":
                     agent.Training("MLP Step Reward", TranningMode.StepTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
-                case "tn score reward":
+                case "tn score":
                     agent.Training("TN Score Reward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
-                case "tn step reward":
+                case "tn step":
                     agent.Training("TN Step Reward", TranningMode.StepTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
                 default:

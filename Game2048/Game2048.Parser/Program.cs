@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Game2048.Game.Library;
 using Game2048.AI.TD_Learning;
+using Game2048.AI.NeuralNetwork;
 
 namespace Game2048.Parser
 {
@@ -15,15 +16,18 @@ namespace Game2048.Parser
         {
             Console.WriteLine("Input file name");
             string fileName = Console.ReadLine();
-            Console.WriteLine("Input Start Record Index");
-            int startIndex = int.Parse(Console.ReadLine());
             List<GameRecord> records = SerializationHelper.Deserialize<List<GameRecord>>(File.ReadAllBytes(fileName));
             Console.WriteLine("Total {0}", records.Count);
+            Console.WriteLine("Input Start Record Index");
+            int startIndex = int.Parse(Console.ReadLine());
+            Console.WriteLine("Input End Record Index");
+            int endIndex = int.Parse(Console.ReadLine());
             using (TextWriter logger = File.CreateText("Records"))
             {
-                for (int i = startIndex; i < records.Count; i++)
+                for (int i = startIndex; i < records.Count && i <= endIndex; i++)
                 {
-                    logger.WriteLine(records[i].winRate16384);
+                    logger.WriteLine("{0}", records[i].maxScore);
+                    //logger.WriteLine("{0}\t{1}\t{2}\t{3}", records[i].averageScore, records[i].maxScore, records[i].minScore, records[i].scoreDeviation);
                     //Console.WriteLine($"Round: {records[i].round} AvgScore: {records[i].averageScore} - Deviation: {records[i].scoreDeviation}, AverageStep: {records[i].averageStep} - Deviation: {records[i].stepDeviation}");
                     //Console.WriteLine($"Max Score: {records[i].maxScore}, Min Score: {records[i].minScore}");
                     //Console.WriteLine($"Max Steps: {records[i].maxStep}, Min Steps: {records[i].minStep}");
@@ -41,7 +45,7 @@ namespace Game2048.Parser
                 }
             }
             Console.WriteLine("End");
-            Console.ReadLine();
+            //Console.ReadLine();
         }
     }
 }

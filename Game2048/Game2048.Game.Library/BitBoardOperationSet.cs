@@ -29,6 +29,10 @@ namespace Game2048.Game.Library
             result = diagonalNet | (upperSparse4corner >> 12) | (lowerSparse4corner << 12);
             return result;
         }
+        public static ulong Flip(ulong board)
+        {
+            return ((board & 0xFFFF000000000000) >> 48) | ((board & 0x0000FFFF00000000) >> 16) | ((board & 0xFFFF0000) << 16) | ((board & 0xFFFF) << 48);
+        }
         public static float GetScore(ulong board)
         {
             float score = 0;

@@ -55,7 +55,7 @@ namespace Game2048.AI.TD_Learning
             }
             else
             {
-                rewardPerceptron = new MultiLayerPerceptron(16, 5, 2, new int[] { 8, 8 }, rewardPerceptronLearningRate, activationFunction, dActivationFunction);
+                rewardPerceptron = new MultiLayerPerceptron(16, 5, 1, new int[] { 8 }, rewardPerceptronLearningRate, activationFunction, dActivationFunction);
             }
             tupleNetwork.Load(out loadedCount);
         }
@@ -104,7 +104,10 @@ namespace Game2048.AI.TD_Learning
                 }
                 tupleNetwork.UpdateValue(symmetricBoards_td, learningRate * (score - tupleNetwork.GetValue(symmetricBoards_td)));
                 float error;
-                rewardPerceptron.Tranning(ExtractInput(td_StateChain[i].movedRawBlocks), rewardDesiredOutput, out error);
+                foreach(ulong rawBoard in symmetricBoards_td)
+                {
+                    rewardPerceptron.Tranning(ExtractInput(rawBoard), rewardDesiredOutput, out error);
+                }
             }
         }
         public void UpdateEvaluation()

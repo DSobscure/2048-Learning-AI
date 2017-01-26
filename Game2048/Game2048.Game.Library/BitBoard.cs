@@ -60,28 +60,17 @@ namespace Game2048.Game.Library
         {
             ulong[] symmetricBoards = new ulong[8];
 
-            ushort* rowContents = stackalloc ushort[4];
-            ushort* reversedRowContents = stackalloc ushort[4];
-            ushort* verticalFillpedRowContents = stackalloc ushort[4];
-            ushort* reversedVerticalFlippedRowContents = stackalloc ushort[4];
+            symmetricBoards[0] = rawBlocks;
+            symmetricBoards[1] = BitBoardOperationSet.Transpose(symmetricBoards[0]);
 
-            for (int i = 0; i < 4; i++)
-            {
-                rowContents[i] = BitBoardOperationSet.GetRow(rawBlocks, i);
-                reversedRowContents[i] = BitBoardOperationSet.ReverseRow(rowContents[i]);
-                verticalFillpedRowContents[3 - i] = rowContents[i];
-                reversedVerticalFlippedRowContents[3 - i] = reversedRowContents[i];
-            }
+            symmetricBoards[2] = BitBoardOperationSet.Flip(symmetricBoards[1]);
+            symmetricBoards[3] = BitBoardOperationSet.Transpose(symmetricBoards[2]);
 
-            symmetricBoards[0] = rawBlocks;//origin board
-            symmetricBoards[1] = BitBoardOperationSet.SetColumns(reversedRowContents);//clockwise rotate 270
-            symmetricBoards[2] = BitBoardOperationSet.SetColumns(verticalFillpedRowContents);//clockwise rotate 90
-            symmetricBoards[3] = BitBoardOperationSet.SetRows(reversedVerticalFlippedRowContents);//clockwise rotate 180
-            symmetricBoards[4] = BitBoardOperationSet.SetColumns(reversedRowContents);
-            symmetricBoards[5] = BitBoardOperationSet.SetRows(reversedRowContents);
-            symmetricBoards[6] = BitBoardOperationSet.SetRows(verticalFillpedRowContents);
-            symmetricBoards[7] = BitBoardOperationSet.SetColumns(reversedVerticalFlippedRowContents);
+            symmetricBoards[4] = BitBoardOperationSet.Flip(symmetricBoards[3]);
+            symmetricBoards[5] = BitBoardOperationSet.Transpose(symmetricBoards[4]);
 
+            symmetricBoards[6] = BitBoardOperationSet.Flip(symmetricBoards[5]);
+            symmetricBoards[7] = BitBoardOperationSet.Transpose(symmetricBoards[6]);
             return symmetricBoards;
         }
 

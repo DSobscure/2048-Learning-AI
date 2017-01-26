@@ -36,9 +36,9 @@ namespace Game2048.AI.TD_Learning
                 IEnumerator<ulong> rawBoardEnumerator = null;
 
                 float previousAverageScore = 0;
-                float previousScoreDeviation = 0;
+                float previousScoreDeviation = float.MaxValue;
                 float previousAverageStep = 0;
-                float previousStepDeviation = 0;
+                float previousStepDeviation = float.MaxValue;
 
                 if (isUsedGivenRawBoards)
                 {
@@ -226,7 +226,7 @@ namespace Game2048.AI.TD_Learning
                         maxScoreBoard = null;
                         minStepBoard = null;
                         maxStepBoard = null;
-                        if (i % 100 == 0)
+                        if (i % 20000 == 0)
                         {
                             learningAI.Save();
                             File.WriteAllBytes(logName, SerializationHelper.Serialize(records));

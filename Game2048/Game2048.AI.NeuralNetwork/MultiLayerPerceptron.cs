@@ -22,8 +22,8 @@ namespace Game2048.AI.NeuralNetwork
         [MessagePackDeserializationConstructor]
         public MultiLayerPerceptron()
         {
-            ActivationFunction = (sum) => Math.Max(sum, 0);
-            dActivationFunction = (sum) => (sum > 0) ? 1 : 0;
+            ActivationFunction = (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum));
+            dActivationFunction = (sum) => ActivationFunction(sum) * (1 - ActivationFunction(sum));
         }
         public MultiLayerPerceptron(int inputDimension, int outputDimension, int hiddenLayerNumber, int[] hiddenLayerNodeNumber, float learningRate, Func<float, float> activationFunction, Func<float, float> dActivationFunction)
         {

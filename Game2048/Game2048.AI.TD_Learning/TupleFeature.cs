@@ -9,17 +9,15 @@ namespace Game2048.AI.TD_Learning
         protected float[] tuples;
         public void UpdateScore(ulong rawBlocks, float delta)
         {
-            int index = GetIndex(rawBlocks);
-            tuples[index] += delta;
+            tuples[GetIndex(rawBlocks)] += delta;
         }
         public float GetScore(ulong blocks)
         {
-            int index = GetIndex(blocks);
-            return tuples[index];
+            return tuples[GetIndex(blocks)];
         }
         public abstract int GetIndex(ulong blocks);
 
-        [MessagePackDeserializationConstructor]
+        public TupleFeature() { }
         protected TupleFeature(float[] tuples)
         {
             this.tuples = tuples;
