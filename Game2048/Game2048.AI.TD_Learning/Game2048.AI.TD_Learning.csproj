@@ -89,13 +89,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BestMoveNode.cs" />
+    <Compile Include="CrossRewardLearningAI.cs" />
     <Compile Include="GameRecord.cs" />
+    <Compile Include="HorizontalRewardLearningAI.cs" />
+    <Compile Include="TupleNetwork.cs" />
     <Compile Include="LearningAI.cs" />
     <Compile Include="MLP_RewardTrained_RewardLearningAI.cs" />
+    <Compile Include="MultistageTupleNetwork.cs" />
+    <Compile Include="MultistageTupleNetworks\TwoStage_0_16384TupleNetwork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RewardLearningAI.cs" />
-    <Compile Include="Reward_TN.cs" />
-    <Compile Include="TN_RewardTrained_RewardLearningAI.cs" />
+    <Compile Include="VerticalRewardLearningAI.cs" />
     <Compile Include="TranningMode.cs" />
     <Compile Include="LearningAgent.cs" />
     <Compile Include="TD_LearningAI.cs" />
@@ -104,7 +108,7 @@
     <Compile Include="TupleFeatures\FiveTupleFeature.cs" />
     <Compile Include="TupleFeatures\FourTupleFeature.cs" />
     <Compile Include="TupleFeatures\SixTupleFeature.cs" />
-    <Compile Include="TupleNetwork.cs" />
+    <Compile Include="SimpleTupleNetwork.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Game2048.AI.NeuralNetwork\Game2048.AI.NeuralNetwork.csproj">

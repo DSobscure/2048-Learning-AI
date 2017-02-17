@@ -7,29 +7,18 @@ namespace Game2048.AI.TD_Learning
     {
         private TupleNetwork tupleNetwork;
 
-        public TD_LearningAI(float learningRate, out int loadedCount, int tupleNetworkIndex) : base(learningRate, tupleNetworkIndex)
+        public TD_LearningAI(float learningRate, TupleNetwork tupleNetwork) : base(learningRate)
         {
-            tupleNetwork = new TupleNetwork("SuperNormalTD", tupleNetworkIndex);
-            tupleNetwork.Load(out loadedCount);
+            this.tupleNetwork = tupleNetwork;
         }
 
         protected override float Evaluate(BitBoard board, Direction direction)
         {
-            if (board.MoveCheck(direction))
-            {
-                int result;
-                BitBoard boardAfter = board.Move(direction, out result);
-                ulong rawBoard = boardAfter.RawBlocks;
-                boardAfter.InsertNewTile();
-                if (boardAfter.CanMove)
-                    return (result + tupleNetwork.GetValue(BitBoard.GetSymmetricBoards(rawBoard)));
-                else
-                    return -1;
-            }
-            else
-            {
-                return 0;
-            }
+            int result;
+            BitBoard boardAfter = board.Move(direction, out result);
+            ulong rawBoard = boardAfter.RawBlocks;
+            boardAfter.InsertNewTile();
+            return (result + tupleNetwork.GetValue(BitBoard.GetSymmetricBoards(rawBoard)));
         }
         
         public void UpdateEvaluation()

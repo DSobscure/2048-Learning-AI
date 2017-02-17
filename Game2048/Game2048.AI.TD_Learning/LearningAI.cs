@@ -9,7 +9,7 @@ namespace Game2048.AI.TD_Learning
         protected List<TD_State> td_StateChain;
         protected List<ulong> rawBlocksRecord;
 
-        public LearningAI(float learningRate, int tupleNetworkIndex)
+        public LearningAI(float learningRate)
         {
             this.learningRate = learningRate;
             td_StateChain = new List<TD_State>();
@@ -37,14 +37,14 @@ namespace Game2048.AI.TD_Learning
         }
         public abstract void Save();
 
-        protected Direction GetBestMove(BitBoard board, int initialStep = 1)
+        protected virtual Direction GetBestMove(BitBoard board, int depth = 1)
         {
             Direction nextDirection = Direction.No;
             float maxScore = float.MinValue;
 
             for (Direction direction = Direction.Up; direction <= Direction.Right; direction++)
             {
-                float result = MutiStepEvaluate(board, direction, initialStep);
+                float result = ExpectedMaxEvaluate(board, direction, depth);
                 if (result > maxScore && board.MoveCheck(direction))
                 {
                     nextDirection = direction;
@@ -54,35 +54,15 @@ namespace Game2048.AI.TD_Learning
             return nextDirection;
         }
         protected abstract float Evaluate(BitBoard board, Direction direction);
-        public float MutiStepEvaluate(BitBoard board, Direction direction, int maxStep)
+        public float ExpectedMaxEvaluate(BitBoard board, Direction direction, int depth)
         {
-            float boardValue = Evaluate(board, direction);
-            if (maxStep == 1 || boardValue < 0)
+            if (depth <= 1)
             {
-                return boardValue;
+                return Evaluate(board, direction);
             }
             else
             {
-                int reward;
-                BitBoard searchingBoard = board.Move(direction, out reward);
-                searchingBoard.InsertNewTile();
-                float maxScore = 0;
-
-                bool isFirst = true;
-                for (Direction searchingDirection = Direction.Up; searchingDirection <= Direction.Right; searchingDirection++)
-                {
-                    float result = MutiStepEvaluate(searchingBoard, searchingDirection, maxStep - 1);
-                    if (isFirst && searchingBoard.MoveCheck(searchingDirection))
-                    {
-                        maxScore = result;
-                        isFirst = false;
-                    }
-                    else if (result > maxScore && searchingBoard.MoveCheck(searchingDirection))
-                    {
-                        maxScore = result;
-                    }
-                }
-                return boardValue + maxScore;
+                throw new System.NotImplementedException();
             }
         }
     }

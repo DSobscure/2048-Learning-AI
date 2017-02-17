@@ -44,9 +44,9 @@ namespace Game2048.AI.TD_Learning
         private TupleNetwork tupleNetwork;
         private MultiLayerPerceptron rewardPerceptron;
 
-        public MLP_RewardTrained_RewardLearningAI(float learningRate, float rewardPerceptronLearningRate, Func<float, float> activationFunction, Func<float, float> dActivationFunction, out int loadedCount, int tupleNetworkIndex) : base(learningRate, tupleNetworkIndex)
+        public MLP_RewardTrained_RewardLearningAI(float learningRate, float rewardPerceptronLearningRate, Func<float, float> activationFunction, Func<float, float> dActivationFunction, TupleNetwork tupleNetwork) : base(learningRate)
         {
-            tupleNetwork = new TupleNetwork("MLP_RewardTrained_RewardLearningTD", tupleNetworkIndex);
+            this.tupleNetwork = tupleNetwork;
             if (File.Exists("MLP_RewardTrained_RewardPerceptron"))
             {
                 rewardPerceptron = SerializationHelper.Deserialize<MultiLayerPerceptron>(File.ReadAllBytes("MLP_RewardTrained_RewardPerceptron"));
@@ -57,7 +57,6 @@ namespace Game2048.AI.TD_Learning
             {
                 rewardPerceptron = new MultiLayerPerceptron(16, 5, 1, new int[] { 8 }, rewardPerceptronLearningRate, activationFunction, dActivationFunction);
             }
-            tupleNetwork.Load(out loadedCount);
         }
         protected override float Evaluate(BitBoard board, Direction direction)
         {
@@ -176,7 +175,7 @@ namespace Game2048.AI.TD_Learning
                     rewardDesiredOutput[4] = 1;
                 }
             }
-            UpdateEvaluation(rewardDesiredOutput);
+            //UpdateEvaluation(rewardDesiredOutput);
             td_StateChain.Clear();
             rawBlocksRecord.Clear();
 

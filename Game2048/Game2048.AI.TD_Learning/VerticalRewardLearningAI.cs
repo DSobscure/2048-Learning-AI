@@ -1,41 +1,28 @@
 ﻿using Game2048.Game.Library;
 using System;
-using System.IO;
-using System.Linq;
 
 namespace Game2048.AI.TD_Learning
 {
-    public class TN_RewardTrained_RewardLearningAI : LearningAI
+    public class VerticalRewardLearningAI : LearningAI
     {
         private TupleNetwork tupleNetwork;
-        private Reward_TN rewardTN;
+        private TupleNetwork rewardTupleNetwork;
+        private float rewardLearningRate;
 
-        public TN_RewardTrained_RewardLearningAI(float learningRate, float rewardLearningRate, out int loadedCount, int tupleNetworkIndex) : base(learningRate, tupleNetworkIndex)
+        public VerticalRewardLearningAI(float learningRate, float rewardLearningRate, TupleNetwork tupleNetwork, TupleNetwork rewardTupleNetwork) : base(learningRate)
         {
-            tupleNetwork = new TupleNetwork("TN_RewardTrained_RewardLearningTD", tupleNetworkIndex);
-            rewardTN = new Reward_TN("RewardTrained_RewardTN", rewardLearningRate, tupleNetworkIndex);
-            tupleNetwork.Load(out loadedCount);
+            this.rewardLearningRate = rewardLearningRate;
+            this.tupleNetwork = tupleNetwork;
+            this.rewardTupleNetwork = rewardTupleNetwork;
         }
         protected override float Evaluate(BitBoard board, Direction direction)
         {
-            if (board.MoveCheck(direction))
-            {
-                int result;
-                BitBoard boardAfter = board.Move(direction, out result);
-                ulong rawBoard = boardAfter.RawBlocks;
-                boardAfter.InsertNewTile();
-                if (boardAfter.CanMove)
-                {
-                    var boards = BitBoard.GetSymmetricBoards(rawBoard);
-                    return (rewardTN.Compute(boards) + tupleNetwork.GetValue(boards));
-                }
-                else
-                    return -1;
-            }
-            else
-            {
-                return 0;
-            }
+            int result;
+            BitBoard boardAfter = board.Move(direction, out result);
+            ulong rawBoard = boardAfter.RawBlocks;
+
+            var boards = BitBoard.GetSymmetricBoards(rawBoard);
+            return 3 + rewardTupleNetwork.GetValue(boards) + tupleNetwork.GetValue(boards);
         }
         public void UpdateEvaluation(float rewardDesiredOutput)
         {
@@ -50,8 +37,9 @@ namespace Game2048.AI.TD_Learning
                 bestMoveNodes[i].rawBlocks = board.RawBlocks;
                 bestMoveNodes[i].movedRawBlocks = board.MoveRaw(nextDirection, out nextReward);
                 var boards = BitBoard.GetSymmetricBoards(bestMoveNodes[i].movedRawBlocks);
-                bestMoveNodes[i].reward = rewardTN.Compute(boards);
+                bestMoveNodes[i].reward = 3 + rewardTupleNetwork.GetValue(boards);
             }
+
             for (int i = td_StateChain.Count - 1; i >= 0; i--)
             {
                 ulong[] symmetricBoards = BitBoard.GetSymmetricBoards(bestMoveNodes[i].movedRawBlocks);
@@ -62,7 +50,7 @@ namespace Game2048.AI.TD_Learning
                     score = 0;
                 }
                 tupleNetwork.UpdateValue(symmetricBoards_td, learningRate * (score - tupleNetwork.GetValue(symmetricBoards_td)));
-                rewardTN.Training(symmetricBoards_td, rewardDesiredOutput);
+                rewardTupleNetwork.UpdateValue(symmetricBoards_td, rewardLearningRate * (rewardDesiredOutput - rewardTupleNetwork.GetValue(symmetricBoards_td)));
             }
         }
         public void UpdateEvaluation()
@@ -73,7 +61,7 @@ namespace Game2048.AI.TD_Learning
         public override void Save()
         {
             tupleNetwork.Save();
-            rewardTN.SaveClassifier();
+            rewardTupleNetwork.Save();
         }
 
         public override Game.Library.Game Train(bool isUsedRawBoard = false, ulong rawBoard = 0)
@@ -84,7 +72,6 @@ namespace Game2048.AI.TD_Learning
         public override Game.Library.Game RewardTrain(bool isTrainedByScore, float previousAverage = 0, float previousDeviation = 0, bool isUsedRawBoard = false, ulong rawBoard = 0)
         {
             Game.Library.Game game = PlayGame(isUsedRawBoard, rawBoard);
-            float rewardDesiredOutput = 3;
             float delta = 0;
             if (isTrainedByScore)
             {
@@ -95,11 +82,7 @@ namespace Game2048.AI.TD_Learning
             {
                 delta = (game.Step - previousAverage) / previousDeviation;
             }
-            rewardDesiredOutput = (float)(3 + Math.Sign(delta) * (Math.Pow(3, Math.Abs(delta)) - 1));
-            //rewardDesiredOutput = (float)(3 + delta);
-            //rewardDesiredOutput = (float)(3 + 3 * delta);
-
-            UpdateEvaluation(rewardDesiredOutput);
+            UpdateEvaluation(delta);
             td_StateChain.Clear();
             rawBlocksRecord.Clear();
 

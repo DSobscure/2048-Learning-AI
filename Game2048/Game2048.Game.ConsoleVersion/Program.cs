@@ -1,5 +1,5 @@
 ﻿using Game2048.AI.TD_Learning;
-using Game2048.AI.NeuralNetwork;
+using Game2048.AI.TD_Learning.MultistageTupleNetworks;
 using System;
 
 namespace Game2048.Game.ConsoleVersion
@@ -14,48 +14,107 @@ namespace Game2048.Game.ConsoleVersion
             int tupleNetworkIndex = int.Parse(Console.ReadLine());
             int loadedCount = 0;
             LearningAgent agent = null;
+            TupleNetwork tupleNetwork = null;
             switch (command)
             {
                 case "basic":
-                    agent = new LearningAgent(new TD_LearningAI(0.0025f, out loadedCount, tupleNetworkIndex));
+                    tupleNetwork = new SimpleTupleNetwork("BasicTD", tupleNetworkIndex);
+                    tupleNetwork.Load(out loadedCount);
+                    agent = new LearningAgent(new TD_LearningAI(0.0025f, tupleNetwork));
                     break;
                 case "reward":
+                    tupleNetwork = new SimpleTupleNetwork("RewardLearningTD", tupleNetworkIndex);
+                    tupleNetwork.Load(out loadedCount);
                     agent = new LearningAgent(new RewardLearningAI(
                         learningRate: 0.0025f,
-                        loadedCount: out loadedCount,
-                        tupleNetworkIndex: tupleNetworkIndex));
+                        tupleNetwork: tupleNetwork));
                     break;
-                case "mlp score reward":
+                case "mlp":
+                    tupleNetwork = new SimpleTupleNetwork("MLP_RewardTrained_RewardLearningTD", tupleNetworkIndex);
+                    tupleNetwork.Load(out loadedCount);
                     agent = new LearningAgent(new MLP_RewardTrained_RewardLearningAI(
                         learningRate: 0.0025f,
                         rewardPerceptronLearningRate: 0.01f,
                         activationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)),
                         dActivationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)) * (1 - 1.0f / (1.0f + (float)Math.Exp(-sum))),
-                        loadedCount: out loadedCount,
-                        tupleNetworkIndex: tupleNetworkIndex));
+                        tupleNetwork: tupleNetwork));
                     break;
-                case "mlp step reward":
-                    agent = new LearningAgent(new MLP_RewardTrained_RewardLearningAI(
-                        learningRate: 0.0025f,
-                        rewardPerceptronLearningRate: 0.01f,
-                        activationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)),
-                        dActivationFunction: (sum) => 1.0f / (1.0f + (float)Math.Exp(-sum)) * (1 - 1.0f / (1.0f + (float)Math.Exp(-sum))),
-                        loadedCount: out loadedCount,
-                        tupleNetworkIndex: tupleNetworkIndex));
+                case "vr":
+                    {
+                        tupleNetwork = new SimpleTupleNetwork("VerticalRewardValueTN", tupleNetworkIndex);
+                        TupleNetwork rewardTupleNetwork = new SimpleTupleNetwork("VerticalRewardRewardTN", tupleNetworkIndex);
+
+                        int loadedCountExtra1;
+                        tupleNetwork.Load(out loadedCount);
+                        rewardTupleNetwork.Load(out loadedCountExtra1);
+                        loadedCount += loadedCountExtra1;
+
+                        agent = new LearningAgent(new VerticalRewardLearningAI(
+                            learningRate: 0.0025f,
+                            rewardLearningRate: 0.0025f,
+                            tupleNetwork: tupleNetwork,
+                            rewardTupleNetwork: rewardTupleNetwork));
+                    }
                     break;
-                case "tn score":
-                    agent = new LearningAgent(new TN_RewardTrained_RewardLearningAI(
+                case "hr":
+                    {
+                        tupleNetwork = new SimpleTupleNetwork("HorizontalRewardValueTN", tupleNetworkIndex);
+                        TupleNetwork rewardTupleNetwork = new SimpleTupleNetwork("HorizontalRewardRewardTN", tupleNetworkIndex);
+
+                        int loadedCountExtra1;
+                        tupleNetwork.Load(out loadedCount);
+                        rewardTupleNetwork.Load(out loadedCountExtra1);
+                        loadedCount += loadedCountExtra1;
+
+                        agent = new LearningAgent(new HorizontalRewardLearningAI(
                         learningRate: 0.0025f,
-                        rewardLearningRate: 0.01f,
-                        loadedCount: out loadedCount,
-                        tupleNetworkIndex: tupleNetworkIndex));
+                        rewardLearningRate: 0.0025f,
+                        tupleNetwork: tupleNetwork,
+                            rewardTupleNetwork: rewardTupleNetwork));
+                    }
                     break;
-                case "tn step":
-                    agent = new LearningAgent(new TN_RewardTrained_RewardLearningAI(
-                        learningRate: 0.0025f,
-                        rewardLearningRate: 0.01f,
-                        loadedCount: out loadedCount,
-                        tupleNetworkIndex: tupleNetworkIndex));
+                case "cr":
+                    {
+                        tupleNetwork = new SimpleTupleNetwork("CrossRewardValueTN", tupleNetworkIndex);
+                        tupleNetwork.Load(out loadedCount);
+                        int loadedCountExtra1, loadedCountExtra2;
+                        TupleNetwork verticalRewardTN = new SimpleTupleNetwork("Cross_VerticalRewardTN", tupleNetworkIndex);
+                        TupleNetwork horizontalRewardTN = new SimpleTupleNetwork("Cross_HorizontalRewardTN", tupleNetworkIndex);
+                        verticalRewardTN.Load(out loadedCountExtra1);
+                        horizontalRewardTN.Load(out loadedCountExtra2);
+                        loadedCount += loadedCountExtra1 + loadedCountExtra2;
+
+                        agent = new LearningAgent(new CrossRewardLearningAI(
+                            learningRate: 0.0025f,
+                            rewardLearningRate: 0.0025f,
+                            tupleNetwork: tupleNetwork,
+                            verticalRewardTN: verticalRewardTN,
+                            horizontalRewardTN: horizontalRewardTN));
+                    }
+                    break;
+                case "ms 0 16384 basic":
+                    {
+                        tupleNetwork = new TwoStage_0_16384TupleNetwork("BasicMSTN_0_16384", tupleNetworkIndex);
+                        tupleNetwork.Load(out loadedCount);
+                        agent = new LearningAgent(new TD_LearningAI(0.0025f, tupleNetwork));
+                    }
+                    break;
+                case "ms 0 16384 vr":
+                    {
+                        tupleNetwork = new TwoStage_0_16384TupleNetwork("VerticalRewardValueMSTN_0_16384", tupleNetworkIndex);
+                        TupleNetwork rewardTupleNetwork = new TwoStage_0_16384TupleNetwork("VerticalRewardRewardMSTN_0_16384", tupleNetworkIndex);
+
+                        int loadedCountExtra1;
+                        tupleNetwork.Load(out loadedCount);
+                        rewardTupleNetwork.Load(out loadedCountExtra1);
+                        loadedCount += loadedCountExtra1;
+
+                        agent = new LearningAgent(new VerticalRewardLearningAI(
+                            learningRate: 0.0025f,
+                            rewardLearningRate: 0.0025f,
+                            tupleNetwork: tupleNetwork,
+                            rewardTupleNetwork: rewardTupleNetwork));
+                    }
                     break;
                 default:
                     Console.WriteLine("Not Existed Command");
@@ -70,17 +129,27 @@ namespace Game2048.Game.ConsoleVersion
                 case "reward":
                     agent.Training("Reward", TranningMode.Classical, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
-                case "mlp score reward":
-                    agent.Training("MLP Score Reward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                case "mlp":
+                    agent.Training("MLP_Reward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
-                case "mlp step reward":
-                    agent.Training("MLP Step Reward", TranningMode.StepTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                case "vr":
+                    agent.Training("VerticalReward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
-                case "tn score":
-                    agent.Training("TN Score Reward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                case "hr":
+                    agent.Training("HorizontalReward", TranningMode.Classical, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
                     break;
-                case "tn step":
-                    agent.Training("TN Step Reward", TranningMode.StepTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                case "cr":
+                    agent.Training("CrossReward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                    break;
+                case "ms 0 16384 basic":
+                    {
+                        agent.Training("Multistage_0_16384_Basic", TranningMode.Classical, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                    }
+                    break;
+                case "ms 0 16384 vr":
+                    {
+                        agent.Training("Multistage_0_16384_VerticalReward", TranningMode.ScoreTrainedReward, 1, 5000000, 1000, ConsoleGameEnvironment.PrintBoard);
+                    }
                     break;
                 default:
                     Console.WriteLine("Not Existed Command");

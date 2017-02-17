@@ -8,10 +8,9 @@ namespace Game2048.AI.TD_Learning
         private TupleNetwork tupleNetwork;
         private const int stepReward = 3;
 
-        public RewardLearningAI(float learningRate, out int loadedCount, int tupleNetworkIndex) : base(learningRate, tupleNetworkIndex)
+        public RewardLearningAI(float learningRate, TupleNetwork tupleNetwork) : base(learningRate)
         {
-            tupleNetwork = new TupleNetwork("RewardLearningTD", tupleNetworkIndex);
-            tupleNetwork.Load(out loadedCount);
+            this.tupleNetwork = tupleNetwork;
         }
         
         protected override float Evaluate(BitBoard board, Direction direction)
